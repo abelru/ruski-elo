@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruski ELO Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 300% 300%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        nav {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        nav::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        nav button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        nav button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        nav button:hover::before {
+            left: 100%;
+        }
+
+        nav button:hover, nav button.active {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientText 3s ease infinite;
+        }
+
+        @keyframes gradientText {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
+            border-radius: 25px;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .form-group input::placeholder, .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            padding: 1.2rem 2.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            margin: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            box-shadow: 0 8px 25px rgba(116, 185, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 15px 40px rgba(116, 185, 255, 0.4);
+        }
+
+        .players-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .team {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .team:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .team h3 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 1.5rem;
+            color: #4ecdc4;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .leaderboard-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+            font-weight: 500;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            box-shadow: 0 5px 20px rgba(255, 107, 107, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .leaderboard-table th, .leaderboard-table td {
+            padding: 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-table th {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-table tr:hover td {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s;
+            opacity: 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+            animation: shimmerStat 2s ease-in-out;
+        }
+
+        @keyframes shimmerStat {
+            0% { transform: rotate(45deg) translateX(-200%); }
+            100% { transform: rotate(45deg) translateX(200%); }
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .rules-section {
+            margin-bottom: 2rem;
+        }
+
+        .rules-section h3 {
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #ff6b6b;
+            padding-bottom: 0.5rem;
+        }
+
+        .status-pending {
+            color: #ffeaa7;
+        }
+
+        .status-approved {
+            color: #55efc4;
+        }
+
+        .status-rejected {
+            color: #fd79a8;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .players-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <ul>
+                <li><button class="nav-btn active" data-page="home">Home</button></li>
+                <li><button class="nav-btn" data-page="submit-game">Submit Game</button></li>
+                <li><button class="nav-btn" data-page="leaderboards">Leaderboards</button></li>
+                <li><button class="nav-btn" data-page="profiles">Profiles</button></li>
+                <li><button class="nav-btn" data-page="admin">Admin</button></li>
+                <li><button class="nav-btn" data-page="rules">Rules</button></li>
+            </ul>
+        </nav>
+
+        <!-- Home Page -->
+        <div class="page active" id="home">
+            <div class="hero">
+                <h1>🏓 Ruski ELO Tracker</h1>
+                <p>The ultimate drinking game tournament system</p>
+            </div>
+            
+            <div class="card">
+                <h2>Recent Games</h2>
+                <div id="recent-games">
+                    <p>No games submitted yet. <a href="#" onclick="showPage('submit-game')">Submit your first game!</a></p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Top Players This Week</h2>
+                <div id="top-players-week"></div>
+            </div>
+        </div>
+
+        <!-- Submit Game Page -->
+        <div class="page" id="submit-game">
+            <div class="card">
+                <h2>Submit New Ruski Game</h2>
+                <form id="game-form">
+                    <div class="form-group">
+                        <label for="team-size">Team Size (players per team)</label>
+                        <select id="team-size" required>
+                            <option value="">Select team size</option>
+                            <option value="1">1v1 (30 beers total)</option>
+                            <option value="2">2v2 (30 beers total)</option>
+                            <option value="3">3v3 (45 beers total)</option>
+                            <option value="4">4v4 (60 beers total)</option>
+                            <option value="6">6v6 (90 beers total)</option>
+                            <option value="8">8v8 (120 beers total)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="winning-team">Winning Team</label>
+                        <select id="winning-team" required>
+                            <option value="">Select winning team</option>
+                            <option value="1">Team 1</option>
+                            <option value="2">Team 2</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="margin-victory">Cups Left for Losing Team</label>
+                        <input type="number" id="margin-victory" min="0" max="10" placeholder="How many cups did losing team have left?">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="went-overtime"> Game went to Overtime
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="went-double-overtime"> Game went to Double Overtime
+                        </label>
+                    </div>
+
+                    <div id="players-section">
+                        <!-- Dynamic player inputs will be generated here -->
+                    </div>
+
+                    <div class="form-group">
+                        <label for="game-notes">Additional Notes (Optional)</label>
+                        <textarea id="game-notes" rows="3" placeholder="Special events, formations, funny moments, etc."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">Submit Game for Approval</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Leaderboards Page -->
+        <div class="page" id="leaderboards">
+            <div class="card">
+                <h2>Leaderboards</h2>
+                <div class="leaderboard-tabs">
+                    <button class="tab-btn active" onclick="showLeaderboard('all-time')">All Time</button>
+                    <button class="tab-btn" onclick="showLeaderboard('monthly')">This Month</button>
+                    <button class="tab-btn" onclick="showLeaderboard('weekly')">This Week</button>
+                    <button class="tab-btn" onclick="showLeaderboard('best-games')">Best Games</button>
+                </div>
+                
+                <div id="leaderboard-content">
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>ELO</th>
+                                <th>Games</th>
+                                <th>Win %</th>
+                                <th>Avg Cups/Game</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-body">
+                            <tr><td colspan="6">No players yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profiles Page -->
+        <div class="page" id="profiles">
+            <div class="card">
+                <h2>Player Search</h2>
+                <div class="form-group">
+                    <input type="text" id="player-search" placeholder="Search for a player...">
+                    <button class="btn-secondary btn" onclick="searchPlayer()">Search</button>
+                </div>
+            </div>
+
+            <div id="profile-display" class="card" style="display: none;">
+                <div id="profile-content"></div>
+            </div>
+        </div>
+
+        <!-- Admin Page -->
+        <div class="page" id="admin">
+            <div class="card">
+                <h2>Pending Game Approvals</h2>
+                <div id="pending-games">
+                    <p>No pending games</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rules Page -->
+        <div class="page" id="rules">
+            <div class="card">
+                <h1>Official Ruski Rules</h1>
+                
+                <div class="rules-section">
+                    <h3>Setup & Basic Gameplay</h3>
+                    <ul>
+                        <li><strong>Teams:</strong> Even number of players (2v2, 3v3, 4v4, etc.)</li>
+                        <li><strong>Cups:</strong> 10 cups per side in 4-3-2-1 triangle formation</li>
+                        <li><strong>Beer:</strong> Each cup 16oz filled with 1.5 beers worth</li>
+                        <li><strong>Scaling:</strong> 15 beers × total players = total beers needed</li>
+                        <li><strong>Exception:</strong> 1v1 still uses full 30 beers</li>
+                    </ul>
+                </div>
+
+                <div class="rules-section">
+                    <h3>Starting the Game</h3>
+                    <ul>
+                        <li><strong>Eye-to-Eye:</strong> Two opposing players maintain eye contact while shooting</li>
+                        <li>Continue until someone hits and opponent misses</li>
+                        <li>Winning team starts the game</li>
+                    </ul>
+                </div>
+
+                <div class="rules-section">
+                    <h3>Gameplay Rules</h3>
+                    <ul>
+                        <li><strong>Shooting:</strong> Hit cups are removed, other team member shoots next</li>
+                        <li><strong>Balls Back:</strong> Hit 2+ cups in a turn = team gets balls back</li>
+                        <li><strong>Defense:</strong> Can swat/catch balls that bounce up from cups</li>
+                        <li><strong>No Bounce Shots:</strong> Ball hits table/ground = dead ball</li>
+                        <li><strong>Wall Bounces:</strong> Allowed only if accidental</li>
+                    </ul>
+                </div>
+
+                <div class="rules-section">
+                    <h3>Drinking Rules</h3>
+                    <ul>
+                        <li><strong>First Cup:</strong> 1 minute to drink</li>
+                        <li><strong>Other Cups:</strong> 3 minutes each</li>
+                        <li><strong>Multiple Cups:</strong> Time per cup + 1 minute between each</li>
+                        <li><strong>Example:</strong> Cups 5,6,7 hit = 3+1+3 minutes total</li>
+                        <li><strong>Penalty:</strong> Don't finish in time = lose next turn</li>
+                    </ul>
+                </div>
+
+                <div class="rules-section">
+                    <h3>Special Rules</h3>
+                    <ul>
+                        <li><strong>Rerack:</strong> Call when triangle formation possible (must call immediately after hitting cup)</li>
+                        <li><strong>Sapuku:</strong> Drink your own cups to mess with opponent's rerack timing</li>
+                        <li><strong>Yacking:</strong> Vomit = lose next turn</li>
+                        <li><strong>Ginobes:</strong> Airball off back of table = shoot with off-hand next turn</li>
+                        <li><strong>Bows:</strong> Elbow over table = shot doesn't count</li>
+                        <li><strong>Naked Mile:</strong> Hit 0 cups in entire game = run naked mile</li>
+                    </ul>
+                </div>
+
+                <div class="rules-section">
+                    <h3>Special Formations & Events</h3>
+                    <ul>
+                        <li><strong>Tri/Quad:</strong> Ball balances between cups = all touching cups removed</li>
+                        <li><strong>Tits Formation:</strong> 4 in back + 2 outside corners = shirts off</li>
+                        <li><strong>Arrow Formation:</strong> Points at someone = they shotgun</li>
+                        <li><strong>Dance Cups:</strong> Ball in non-game cup = everyone dances</li>
+                    </ul>
+                </div>
+
+                <div class="rules-section">
+                    <h3>Endgame & Overtime</h3>
+                    <ul>
+                        <li><strong>Game Winner:</strong> Last cup hit, other team member can still shoot for balls back</li>
+                        <li><strong>Redemption:</strong> Losing team shoots with personal redemption songs</li>
+                        <li><strong>Overtime:</strong> 6 cups total (3 per team), 4.5 beers per person</li>
+                        <li><strong>Double Overtime:</strong> Full 30-beer game reset</li>
+                    </ul>
+                </div>
+
+                <div class="rules-section">
+                    <h3>ELO Scoring System</h3>
+                    <ul>
+                        <li><strong>Win Points:</strong> 1 ÷ team size (e.g., 0.5 for 2v2)</li>
+                        <li><strong>Regular Cups:</strong> +1 point each</li>
+                        <li><strong>Redemption Cups:</strong> +3 points each</li>
+                        <li><strong>Overtime Cups:</strong> +1.5 points each</li>
+                        <li><strong>Doubles/Tris/Quads:</strong> +1 point total (regardless of cups removed)</li>
+                        <li><strong>Penalties:</strong> -1 point per yack, missed drink, failed drink</li>
+                        <li><strong>Naked Mile:</strong> -5 points</li>
+                        <li><strong>MVP Bonus:</strong> +2 points (most cups on winning team)</li>
+                        <li><strong>LVP Penalty:</strong> -2 points (least cups on losing team)</li>
+                        <li><strong>Margin Bonus:</strong> Extra points based on cups remaining</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game data storage
+        let players = new Set();
+        let games = [];
+        let pendingGames = [];
+
+        // Sample data for demonstration
+        const samplePlayers = [
+            { name: 'Mike', elo: 1250, games: 15, wins: 10, totalCups: 87, nakedMilesRequired: 0, nakedMilesRun: 0 },
+            { name: 'Sarah', elo: 1180, games: 12, wins: 7, totalCups: 65, nakedMilesRequired: 1, nakedMilesRun: 0 },
+            { name: 'Jake', elo: 1320, games: 18, wins: 14, totalCups: 105, nakedMilesRequired: 0, nakedMilesRun: 0 },
+            { name: 'Emma', elo: 1090, games: 8, wins: 3, totalCups: 32, nakedMilesRequired: 2, nakedMilesRun: 1 },
+        ];
+
+        // Initialize sample data
+        samplePlayers.forEach(player => players.add(player.name));
+
+        // Navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(pageId).classList.add('active');
+            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+        }
+
+        // Navigation event listeners
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                showPage(btn.dataset.page);
+            });
+        });
+
+        // Team size change handler
+        document.getElementById('team-size').addEventListener('change', function() {
+            generatePlayerInputs();
+        });
+
+        function generatePlayerInputs() {
+            const teamSize = parseInt(document.getElementById('team-size').value);
+            if (!teamSize) return;
+
+            const playersSection = document.getElementById('players-section');
+            playersSection.innerHTML = '';
+
+            const container = document.createElement('div');
+            container.className = 'players-container';
+
+            // Team 1
+            const team1 = document.createElement('div');
+            team1.className = 'team';
+            team1.innerHTML = '<h3>Team 1</h3>';
+            
+            for (let i = 0; i < teamSize; i++) {
+                team1.innerHTML += `
+                    <div class="form-group">
+                        <label for="team1-player${i}">Player ${i + 1} Name</label>
+                        <input type="text" id="team1-player${i}" required placeholder="Player name">
+                    </div>
+                    <div class="form-group">
+                        <label for="team1-cups${i}">Cups Hit</label>
+                        <input type="number" id="team1-cups${i}" min="0" placeholder="Total cups hit">
+                    </div>
+                    <div class="form-group">
+                        <label for="team1-redemption${i}">Redemption Cups</label>
+                        <input type="number" id="team1-redemption${i}" min="0" placeholder="Redemption cups hit">
+                    </div>
+                    <div class="form-group">
+                        <label for="team1-overtime${i}">Overtime Cups</label>
+                        <input type="number" id="team1-overtime${i}" min="0" placeholder="Overtime cups hit">
+                    </div>
+                    <div class="form-group">
+                        <label for="team1-yacks${i}">Yacks</label>
+                        <input type="number" id="team1-yacks${i}" min="0" placeholder="Number of yacks">
+                    </div>
+                    <div class="form-group">
+                        <label for="team1-drinks${i}">Failed/Missed Drinks</label>
+                        <input type="number" id="team1-drinks${i}" min="0" placeholder="Drinking penalties">
+                    </div>
+                    <div class="form-group">
+                        <label for="team1-specials${i}">Doubles/Tris/Quads</label>
+                        <input type="number" id="team1-specials${i}" min="0" placeholder="Special shots hit">
+                    </div>
+                    <div class="form-group">
+                        <label for="team1-naked${i}">Naked Miles Earned</label>
+                        <input type="number" id="team1-naked${i}" min="0" placeholder="Naked miles earned this game">
+                    </div>
+                `;
+            }
+
+            // Team 2
+            const team2 = document.createElement('div');
+            team2.className = 'team';
+            team2.innerHTML = '<h3>Team 2</h3>';
+            
+            for (let i = 0; i < teamSize; i++) {
+                team2.innerHTML += `
+                    <div class="form-group">
+                        <label for="team2-player${i}">Player ${i + 1} Name</label>
+                        <input type="text" id="team2-player${i}" required placeholder="Player name">
+                    </div>
+                    <div class="form-group">
+                        <label for="team2-cups${i}">Cups Hit</label>
+                        <input type="number" id="team2-cups${i}" min="0" placeholder="Total cups hit">
+                    </div>
+                    <div class="form-group">
+                        <label for="team2-redemption${i}">Redemption Cups</label>
+                        <input type="number" id="team2-redemption${i}" min="0" placeholder="Redemption cups hit">
+                    </div>
+                    <div class="form-group">
+                        <label for="team2-overtime${i}">Overtime Cups</label>
+                        <input type="number" id="team2-overtime${i}" min="0" placeholder="Overtime cups hit">
+                    </div>
+                    <div class="form-group">
+                        <label for="team2-yacks${i}">Yacks</label>
+                        <input type="number" id="team2-yacks${i}" min="0" placeholder="Number of yacks">
+                    </div>
+                    <div class="form-group">
+                        <label for="team2-drinks${i}">Failed/Missed Drinks</label>
+                        <input type="number" id="team2-drinks${i}" min="0" placeholder="Drinking penalties">
+                    </div>
+                    <div class="form-group">
+                        <label for="team2-specials${i}">Doubles/Tris/Quads</label>
+                        <input type="number" id="team2-specials${i}" min="0" placeholder="Special shots hit">
+                    </div>
+                    <div class="form-group">
+                        <label for="team2-naked${i}">Naked Miles Earned</label>
+                        <input type="number" id="team2-naked${i}" min="0" placeholder="Naked miles earned this game">
+                    </div>
+                `;
+            }
+
+            container.appendChild(team1);
+            container.appendChild(team2);
+            playersSection.appendChild(container);
+        }
+
+        // Game form submission
+        document.getElementById('game-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitGame();
+        });
+
+        function submitGame() {
+            const teamSize = parseInt(document.getElementById('team-size').value);
+            const winningTeam = parseInt(document.getElementById('winning-team').value);
+            const marginVictory = parseInt(document.getElementById('margin-victory').value) || 0;
+            const wentOvertime = document.getElementById('went-overtime').checked;
+            const wentDoubleOvertime = document.getElementById('went-double-overtime').checked;
+            const gameNotes = document.getElementById('game-notes').value;
+
+            const gameData = {
+                id: Date.now(),
+                teamSize,
+                winningTeam,
+                marginVictory,
+                wentOvertime,
+                wentDoubleOvertime,
+                gameNotes,
+                submittedAt: new Date(),
+                status: 'pending',
+                players: []
+            };
+
+            // Collect player data
+            for (let team = 1; team <= 2; team++) {
+                for (let i = 0; i < teamSize; i++) {
+                    const playerName = document.getElementById(`team${team}-player${i}`).value;
+                    const cupsHit = parseInt(document.getElementById(`team${team}-cups${i}`).value) || 0;
+                    const redemptionCups = parseInt(document.getElementById(`team${team}-redemption${i}`).value) || 0;
+                    const overtimeCups = parseInt(document.getElementById(`team${team}-overtime${i}`).value) || 0;
+                    const yacks = parseInt(document.getElementById(`team${team}-yacks${i}`).value) || 0;
+                    const failedDrinks = parseInt(document.getElementById(`team${team}-drinks${i}`).value) || 0;
+                    const specialShots = parseInt(document.getElementById(`team${team}-specials${i}`).value) || 0;
+                    const nakedMiles = parseInt(document.getElementById(`team${team}-naked${i}`).value) || 0;
+
+                    players.add(playerName);
+
+                    gameData.players.push({
+                        name: playerName,
+                        team: team,
+                        cupsHit,
+                        redemptionCups,
+                        overtimeCups,
+                        yacks,
+                        failedDrinks,
+                        specialShots,
+                        nakedMiles,
+                        isWinner: team === winningTeam
+                    });
+                }
+            }
+
+            pendingGames.push(gameData);
+            alert('Game submitted for approval!');
+            document.getElementById('game-form').reset();
+            document.getElementById('players-section').innerHTML = '';
+            updatePendingGames();
+        }
+
+        // ELO Calculation
+        function calculateELO(playerData, gameData) {
+            const basePoints = playerData.isWinner ? (1 / gameData.teamSize) : -(1 / gameData.teamSize);
+            
+            const cupPoints = (playerData.cupsHit * 1) + 
+                             (playerData.redemptionCups * 3) + 
+                             (playerData.overtimeCups * 1.5);
+            
+            const penalties = (playerData.yacks * -1) + 
+                             (playerData.failedDrinks * -1) + 
+                             (playerData.nakedMiles * -5);
+            
+            let mvpBonus = 0;
+            let lvpPenalty = 0;
+            
+            // Calculate MVP/LVP (simplified)
+            if (playerData.isWinner) {
+                // MVP logic would go here
+            } else {
+                // LVP logic would go here
+            }
+            
+            const marginBonus = playerData.isWinner ? Math.max(0, gameData.marginVictory - 2) * 0.5 : 0;
+            
+            return basePoints + cupPoints + penalties + mvpBonus + lvpPenalty + marginBonus;
+        }
+
+        // Leaderboard functions
+        function showLeaderboard(type) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            const leaderboardBody = document.getElementById('leaderboard-body');
+            leaderboardBody.innerHTML = '';
+            
+            // Display sample leaderboard data
+            samplePlayers.sort((a, b) => b.elo - a.elo);
+            samplePlayers.forEach((player, index) => {
+                const winPercentage = ((player.wins / player.games) * 100).toFixed(1);
+                const avgCups = (player.totalCups / player.games).toFixed(1);
+                
+                leaderboardBody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${player.name}</td>
+                        <td>${player.elo}</td>
+                        <td>${player.games}</td>
+                        <td>${winPercentage}%</td>
+                        <td>${avgCups}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Player search function
+        function searchPlayer() {
+            const searchTerm = document.getElementById('player-search').value.trim().toLowerCase();
+            if (!searchTerm) {
+                alert('Please enter a player name to search');
+                return;
+            }
+            
+            const player = samplePlayers.find(p => p.name.toLowerCase() === searchTerm);
+            const profileDisplay = document.getElementById('profile-display');
+            const profileContent = document.getElementById('profile-content');
+            
+            if (player) {
+                const winPercentage = ((player.wins / player.games) * 100).toFixed(1);
+                const avgCups = (player.totalCups / player.games).toFixed(1);
+                const nakedMileStatus = player.nakedMilesRequired > player.nakedMilesRun ? 
+                    `<span style="color: #fd79a8;">OWES ${player.nakedMilesRequired - player.nakedMilesRun} NAKED MILES!</span>` :
+                    `<span style="color: #55efc4;">All naked miles completed</span>`;
+                
+                profileContent.innerHTML = `
+                    <h2>${player.name}'s Profile</h2>
+                    <div class="profile-stats">
+                        <div class="stat-card">
+                            <div class="stat-value">${player.elo}</div>
+                            <div>ELO Rating</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${player.games}</div>
+                            <div>Games Played</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${winPercentage}%</div>
+                            <div>Win Rate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${avgCups}</div>
+                            <div>Avg Cups/Game</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${player.totalCups}</div>
+                            <div>Total Cups Hit</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${player.nakedMilesRequired}</div>
+                            <div>Naked Miles Required</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${player.nakedMilesRun}</div>
+                            <div>Naked Miles Run</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 1rem; margin-top: 1rem;">${nakedMileStatus}</div>
+                        </div>
+                    </div>
+                `;
+                profileDisplay.style.display = 'block';
+            } else {
+                profileContent.innerHTML = `<p>Player "${searchTerm}" not found. Try: Mike, Sarah, Jake, or Emma</p>`;
+                profileDisplay.style.display = 'block';
+            }
+        }
+
+        // Update pending games display
+        function updatePendingGames() {
+            const pendingGamesDiv = document.getElementById('pending-games');
+            if (pendingGames.length === 0) {
+                pendingGamesDiv.innerHTML = '<p>No pending games</p>';
+                return;
+            }
+            
+            let html = '';
+            pendingGames.forEach(game => {
+                const playerList = game.players.map(p => `${p.name} (Team ${p.team})`).join(', ');
+                html += `
+                    <div class="card" style="margin-bottom: 1rem;">
+                        <h3>Game ${game.id} <span class="status-pending">(Pending)</span></h3>
+                        <p><strong>Teams:</strong> ${game.teamSize}v${game.teamSize}</p>
+                        <p><strong>Players:</strong> ${playerList}</p>
+                        <p><strong>Winner:</strong> Team ${game.winningTeam}</p>
+                        <p><strong>Submitted:</strong> ${game.submittedAt.toLocaleString()}</p>
+                        <button class="btn" onclick="approveGame(${game.id})">Approve</button>
+                        <button class="btn" onclick="rejectGame(${game.id})" style="background: linear-gradient(45deg, #e17055, #d63031);">Reject</button>
+                    </div>
+                `;
+            });
+            pendingGamesDiv.innerHTML = html;
+        }
+
+        // Admin functions
+        function approveGame(gameId) {
+            const gameIndex = pendingGames.findIndex(g => g.id === gameId);
+            if (gameIndex !== -1) {
+                const game = pendingGames[gameIndex];
+                game.status = 'approved';
+                games.push(game);
+                pendingGames.splice(gameIndex, 1);
+                updatePendingGames();
+                updateRecentGames();
+                alert('Game approved!');
+            }
+        }
+
+        function rejectGame(gameId) {
+            const gameIndex = pendingGames.findIndex(g => g.id === gameId);
+            if (gameIndex !== -1) {
+                pendingGames.splice(gameIndex, 1);
+                updatePendingGames();
+                alert('Game rejected!');
+            }
+        }
+
+        // Update recent games display
+        function updateRecentGames() {
+            const recentGamesDiv = document.getElementById('recent-games');
+            if (games.length === 0) {
+                recentGamesDiv.innerHTML = '<p>No approved games yet. <a href="#" onclick="showPage(\'submit-game\')">Submit your first game!</a></p>';
+                return;
+            }
+            
+            const recentGames = games.slice(-5).reverse();
+            let html = '';
+            recentGames.forEach(game => {
+                const winnerNames = game.players.filter(p => p.isWinner).map(p => p.name).join(', ');
+                html += `
+                    <div style="padding: 1rem; background: rgba(255,255,255,0.1); margin-bottom: 1rem; border-radius: 8px;">
+                        <strong>${game.teamSize}v${game.teamSize} Game</strong> - Team ${game.winningTeam} wins!<br>
+                        <small>Winners: ${winnerNames} | ${game.submittedAt.toLocaleDateString()}</small>
+                    </div>
+                `;
+            });
+            recentGamesDiv.innerHTML = html;
+        }
+
+        // Initialize leaderboard
+        showLeaderboard('all-time');
+        
+        // Add Enter key support for player search
+        document.getElementById('player-search').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchPlayer();
+            }
+        });
+
+        
