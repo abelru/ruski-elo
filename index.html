@@ -669,40 +669,63 @@
         let playerRoster = [];
         let gameIdCounter = 1;
 
-        // Load data from localStorage on page load
-        function loadFromLocalStorage() {
-            try {
-                const savedData = localStorage.getItem('fisherRuskiData');
-                if (savedData) {
-                    const data = JSON.parse(savedData);
+        // Firebase Configuration - PASTE YOUR CONFIG HERE
+        const firebaseConfig = {
+  apiKey: "AIzaSyC-NDVNlEJuForEGwmjbsezHiYMOXh_HUk",
+  authDomain: "fisher-ruski-tracker.firebaseapp.com",
+  databaseURL: "https://fisher-ruski-tracker-default-rtdb.firebaseio.com",
+  projectId: "fisher-ruski-tracker",
+  storageBucket: "fisher-ruski-tracker.firebasestorage.app",
+  messagingSenderId: "957714588163",
+  appId: "1:957714588163:web:3df268d93fbdc4ea932436"
+};
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Load data from Firebase
+        function loadFromFirebase() {
+            database.ref('fisherRuskiData').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
                     approvedGames = data.approvedGames || [];
                     playerRoster = data.playerRoster || [];
                     gameIdCounter = data.gameIdCounter || 1;
-                    console.log('Data loaded from localStorage');
+                    
+                    // Update all displays
+                    updateAllGamesList();
+                    updateHomeStats();
+                    updateHighlights('week');
+                    updatePlayersList();
+                    updateRankings();
+                    
+                    console.log('Data loaded from Firebase');
                 }
-            } catch (error) {
-                console.error('Error loading data:', error);
-            }
+            });
         }
 
-        // Save data to localStorage
-        function saveToLocalStorage() {
-            try {
-                const data = {
-                    approvedGames: approvedGames,
-                    playerRoster: playerRoster,
-                    gameIdCounter: gameIdCounter,
-                    lastSaved: new Date().toISOString()
-                };
-                localStorage.setItem('fisherRuskiData', JSON.stringify(data));
-                console.log('Data saved to localStorage');
-            } catch (error) {
-                console.error('Error saving data:', error);
-            }
+        // Save data to Firebase
+        function saveToFirebase() {
+            const data = {
+                approvedGames: approvedGames,
+                playerRoster: playerRoster,
+                gameIdCounter: gameIdCounter,
+                lastSaved: new Date().toISOString()
+            };
+            
+            database.ref('fisherRuskiData').set(data)
+                .then(() => {
+                    console.log('Data saved to Firebase');
+                })
+                .catch((error) => {
+                    console.error('Error saving data:', error);
+                    alert('Error saving data. Check your internet connection.');
+                });
         }
 
         // Load data when page loads
-        loadFromLocalStorage();
+        loadFromFirebase();
 
         // Auto-log test game
         
@@ -893,7 +916,7 @@
     document.getElementById('next-btn').style.display = 'none';
     goToStep1();
     showPage('home');
-    saveToLocalStorage();
+    saveToFirebase();
 }
 
         function adminLogin() {
@@ -1045,7 +1068,7 @@
             alert('Game updated!');
             updateApprovedGamesDisplay();
             updateAllGamesList();
-            saveToLocalStorage(); 
+            saveToFirebase();
         }
 
         function cancelEdit() {
@@ -1082,14 +1105,15 @@
             document.getElementById('new-player-name').value = '';
             updatePlayerRoster();
             alert('Player added to roster!');
-            saveToLocalStorage(); 
+            saveToFirebase(); 
         }
 
         function removePlayer(index) {
             if (confirm('Remove ' + playerRoster[index] + ' from roster? This will not affect existing games.')) {
                 playerRoster.splice(index, 1);
                 updatePlayerRoster();
-                saveToLocalStorage();
+                saveToFirebase();
+        
             }
         }
 
@@ -1098,7 +1122,7 @@
                 approvedGames.splice(i, 1);
                 updateApprovedGamesDisplay();
                 updateAllGamesList();
-                saveToLocalStorage();
+                saveToFirebase();
 
             }
         }
