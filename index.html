@@ -677,34 +677,7 @@
         let gameIdCounter = 1;
 
         // Auto-log test game
-        (function() {
-            playerRoster = ['Abel', 'Kevin'];
-            approvedGames.push({
-                id: gameIdCounter++,
-                date: new Date().toLocaleString(),
-                size: 1,
-                winningTeam: 1,
-                teams: [
-                    [{
-                        name: 'Abel',
-                        cups: 10,
-                        redemptionCups: 0,
-                        overtimeCups: 0,
-                        yacks: 1,
-                        nakedMile: false
-                    }],
-                    [{
-                        name: 'Kevin',
-                        cups: 7,
-                        redemptionCups: 0,
-                        overtimeCups: 0,
-                        yacks: 0,
-                        nakedMile: false
-                    }]
-                ]
-            });
-        })();
-
+        
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
