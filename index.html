@@ -676,6 +676,41 @@
         let playerRoster = [];
         let gameIdCounter = 1;
 
+        // Load data from localStorage on page load
+        function loadFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('fisherRuskiData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    approvedGames = data.approvedGames || [];
+                    playerRoster = data.playerRoster || [];
+                    gameIdCounter = data.gameIdCounter || 1;
+                    console.log('Data loaded from localStorage');
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        // Save data to localStorage
+        function saveToLocalStorage() {
+            try {
+                const data = {
+                    approvedGames: approvedGames,
+                    playerRoster: playerRoster,
+                    gameIdCounter: gameIdCounter,
+                    lastSaved: new Date().toISOString()
+                };
+                localStorage.setItem('fisherRuskiData', JSON.stringify(data));
+                console.log('Data saved to localStorage');
+            } catch (error) {
+                console.error('Error saving data:', error);
+            }
+        }
+
+        // Load data when page loads
+        loadFromLocalStorage();
+
         // Auto-log test game
         
         function showPage(pageId) {
@@ -841,6 +876,7 @@
             document.getElementById('next-btn').style.display = 'none';
             goToStep1();
             showPage('home');
+            saveToLocalStorage();
         }
 
         function adminLogin() {
@@ -992,6 +1028,7 @@
             alert('Game updated!');
             updateApprovedGamesDisplay();
             updateAllGamesList();
+            saveToLocalStorage(); 
         }
 
         function cancelEdit() {
@@ -1028,12 +1065,14 @@
             document.getElementById('new-player-name').value = '';
             updatePlayerRoster();
             alert('Player added to roster!');
+            saveToLocalStorage(); 
         }
 
         function removePlayer(index) {
             if (confirm('Remove ' + playerRoster[index] + ' from roster? This will not affect existing games.')) {
                 playerRoster.splice(index, 1);
                 updatePlayerRoster();
+                saveToLocalStorage();
             }
         }
 
@@ -1042,6 +1081,8 @@
                 approvedGames.splice(i, 1);
                 updateApprovedGamesDisplay();
                 updateAllGamesList();
+                saveToLocalStorage();
+
             }
         }
 
