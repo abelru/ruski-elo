@@ -329,13 +329,6 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Did game go to Redemption?</label>
-                        <select id="had-redemption">
-                            <option value="no">No</option>
-                            <option value="yes">Yes</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label>Did game go to Overtime?</label>
                         <select id="had-overtime">
                             <option value="no">No</option>
@@ -775,48 +768,64 @@
         }
 
         function goToStep2() {
-            const size = parseInt(document.getElementById('team-size').value);
-            if (!size || !document.getElementById('winning-team').value) {
-                alert('Select team size and winner!');
+    const size = parseInt(document.getElementById('team-size').value);
+    if (!size || !document.getElementById('winning-team').value) {
+        alert('Select team size and winner!');
+        return;
+    }
+
+    for (let t = 1; t <= 2; t++) {
+        for (let i = 0; i < size; i++) {
+            if (!getName(t, i)) {
+                alert(`Enter player for Team ${t} Player ${i+1}`);
                 return;
             }
-
-            for (let t = 1; t <= 2; t++) {
-                for (let i = 0; i < size; i++) {
-                    if (!getName(t, i)) {
-                        alert(`Enter player for Team ${t} Player ${i+1}`);
-                        return;
-                    }
-                }
-            }
-
-            const hadRedemption = document.getElementById('had-redemption').value === 'yes';
-            const hadOvertime = document.getElementById('had-overtime').value === 'yes';
-
-            const container = document.getElementById('individual-stats');
-            let html = '';
-            for (let t = 1; t <= 2; t++) {
-                for (let i = 0; i < size; i++) {
-                    const name = getName(t, i);
-                    html += `<div class="player-stats"><h4>${name}</h4><div class="stats-grid-form">
-                        <div class="form-group"><label>Regular Cups</label><input type="number" id="t${t}p${i}c" min="0" value="0"></div>`;
-                    
-                    if (hadRedemption) {
-                        html += `<div class="form-group"><label>Redemption Cups</label><input type="number" id="t${t}p${i}r" min="0" value="0"></div>`;
-                    }
-                    
-                    if (hadOvertime) {
-                        html += `<div class="form-group"><label>Overtime Cups</label><input type="number" id="t${t}p${i}o" min="0" value="0"></div>`;
-                    }
-                    
-                    html += `<div class="form-group"><label>Yacks</label><input type="number" id="t${t}p${i}y" min="0" value="0"></div>
-                    </div></div>`;
-                }
-            }
-            container.innerHTML = html;
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'block';
         }
+    }
+
+    const hadOvertime = document.getElementById('had-overtime').value === 'yes';
+
+    const container = document.getElementById('individual-stats');
+    let html = '';
+    
+    // If overtime, ask who hit the redemption cup first
+    if (hadOvertime) {
+        html += `<div style="background:#1a1a00;border:2px solid #ffff00;padding:20px;border-radius:8px;margin-bottom:20px;">
+            <h3 style="color:#ffff00;margin-bottom:15px;">Who hit the Redemption Cup?</h3>
+            <div class="form-group">
+                <select id="redemption-shooter">
+                    <option value="">Select Player</option>`;
+        
+        for (let t = 1; t <= 2; t++) {
+            for (let i = 0; i < size; i++) {
+                const name = getName(t, i);
+                html += `<option value="${name}">${name}</option>`;
+            }
+        }
+        
+        html += `</select>
+            </div>
+        </div>`;
+    }
+    
+    for (let t = 1; t <= 2; t++) {
+        for (let i = 0; i < size; i++) {
+            const name = getName(t, i);
+            html += `<div class="player-stats"><h4>${name}</h4><div class="stats-grid-form">
+                <div class="form-group"><label>Regular Cups</label><input type="number" id="t${t}p${i}c" min="0" value="0"></div>`;
+            
+            if (hadOvertime) {
+                html += `<div class="form-group"><label>Overtime Cups</label><input type="number" id="t${t}p${i}o" min="0" value="0"></div>`;
+            }
+            
+            html += `<div class="form-group"><label>Yacks</label><input type="number" id="t${t}p${i}y" min="0" value="0"></div>
+            </div></div>`;
+        }
+    }
+    container.innerHTML = html;
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+}
 
         function goToStep1() {
             document.getElementById('step1').style.display = 'block';
@@ -824,60 +833,68 @@
         }
 
         function submitGame() {
-            const size = parseInt(document.getElementById('team-size').value);
-            const winner = parseInt(document.getElementById('winning-team').value);
-            const hadRedemption = document.getElementById('had-redemption').value === 'yes';
-            const hadOvertime = document.getElementById('had-overtime').value === 'yes';
-            
-            const game = {
-                id: gameIdCounter++,
-                date: new Date().toLocaleString(),
-                size: size,
-                winningTeam: winner,
-                teams: []
-            };
-            
-            for (let t = 1; t <= 2; t++) {
-                const team = [];
-                for (let i = 0; i < size; i++) {
-                    const name = getName(t, i);
-                    if (!playerRoster.includes(name)) {
-                        playerRoster.push(name);
-                        playerRoster.sort();
-                    }
-                    
-                    const cups = parseInt(document.getElementById(`t${t}p${i}c`).value) || 0;
-                    const redemptionEl = document.getElementById(`t${t}p${i}r`);
-                    const redemptionCups = (hadRedemption && redemptionEl) ? (parseInt(redemptionEl.value) || 0) : 0;
-                    const overtimeCupsEl = document.getElementById(`t${t}p${i}o`);
-                    const overtimeCups = (hadOvertime && overtimeCupsEl) ? (parseInt(overtimeCupsEl.value) || 0) : 0;
-                    const yacks = parseInt(document.getElementById(`t${t}p${i}y`).value) || 0;
-                    
-                    team.push({
-                        name: name,
-                        cups: cups,
-                        redemptionCups: redemptionCups,
-                        overtimeCups: overtimeCups,
-                        yacks: yacks,
-                        nakedMile: cups === 0 && redemptionCups === 0 && overtimeCups === 0
-                    });
-                }
-                game.teams.push(team);
+    const size = parseInt(document.getElementById('team-size').value);
+    const winner = parseInt(document.getElementById('winning-team').value);
+    const hadOvertime = document.getElementById('had-overtime').value === 'yes';
+    
+    let redemptionShooter = '';
+    if (hadOvertime) {
+        redemptionShooter = document.getElementById('redemption-shooter').value;
+        if (!redemptionShooter) {
+            alert('Please select who hit the redemption cup!');
+            return;
+        }
+    }
+    
+    const game = {
+        id: gameIdCounter++,
+        date: new Date().toLocaleString(),
+        size: size,
+        winningTeam: winner,
+        teams: []
+    };
+    
+    for (let t = 1; t <= 2; t++) {
+        const team = [];
+        for (let i = 0; i < size; i++) {
+            const name = getName(t, i);
+            if (!playerRoster.includes(name)) {
+                playerRoster.push(name);
+                playerRoster.sort();
             }
             
-            approvedGames.push(game);
-            alert('Game submitted!');
+            const cups = parseInt(document.getElementById(`t${t}p${i}c`).value) || 0;
+            const overtimeCupsEl = document.getElementById(`t${t}p${i}o`);
+            const overtimeCups = (hadOvertime && overtimeCupsEl) ? (parseInt(overtimeCupsEl.value) || 0) : 0;
+            const yacks = parseInt(document.getElementById(`t${t}p${i}y`).value) || 0;
             
-            document.getElementById('team-size').value = '';
-            document.getElementById('winning-team').value = '';
-            document.getElementById('had-redemption').value = 'no';
-            document.getElementById('had-overtime').value = 'no';
-            document.getElementById('teams-container').innerHTML = '';
-            document.getElementById('next-btn').style.display = 'none';
-            goToStep1();
-            showPage('home');
-            saveToLocalStorage();
+            // If this player hit the redemption cup, give them 1 redemption cup
+            const redemptionCups = (hadOvertime && name === redemptionShooter) ? 1 : 0;
+            
+            team.push({
+                name: name,
+                cups: cups,
+                redemptionCups: redemptionCups,
+                overtimeCups: overtimeCups,
+                yacks: yacks,
+                nakedMile: cups === 0 && redemptionCups === 0 && overtimeCups === 0
+            });
         }
+        game.teams.push(team);
+    }
+    
+    approvedGames.push(game);
+    alert('Game submitted!');
+    
+    document.getElementById('team-size').value = '';
+    document.getElementById('winning-team').value = '';
+    document.getElementById('had-overtime').value = 'no';
+    document.getElementById('teams-container').innerHTML = '';
+    document.getElementById('next-btn').style.display = 'none';
+    goToStep1();
+    showPage('home');
+    saveToLocalStorage();
+}
 
         function adminLogin() {
             if (document.getElementById('admin-password').value === 'bbsucks') {
