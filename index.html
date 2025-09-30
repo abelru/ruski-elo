@@ -681,8 +681,14 @@
 };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        // Initialize Firebase - wait for scripts to load
+let database;
+
+window.addEventListener('load', function() {
+    firebase.initializeApp(firebaseConfig);
+    database = firebase.database();
+    loadFromFirebase();
+});
 
         // Load data from Firebase
         function loadFromFirebase() {
