@@ -6,6 +6,9 @@
     <title>Fisher Ruski Tracker</title>
      <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+
     <style>
         * {
             margin: 0;
@@ -682,10 +685,13 @@
   appId: "1:957714588163:web:3df268d93fbdc4ea932436"
 };
 
+        
         // Initialize Firebase
         // Initialize Firebase - wait for scripts to load
 let database;
-
+        
+emailjs.init(pyEFhKTszWQu0O5ZC); 
+        
 window.addEventListener('load', function() {
     firebase.initializeApp(firebaseConfig);
     database = firebase.database();
@@ -922,6 +928,24 @@ window.addEventListener('load', function() {
     goToStep1();
     showPage('home');
     saveToFirebase();
+
+    const t1 = game.teams[0].map(p => p.name).join(' & ');
+    const t2 = game.teams[1].map(p => p.name).join(' & ');
+    const winnerTeam = winner === 1 ? t1 : t2;
+
+    emailjs.send(service_r168u8q, template_lawx1fc, {
+    to_email: abelrupertus06@gmail.com,
+    game_info: `${t1} vs ${t2}`,
+    winner: `Team ${winner} (${winnerTeam})`,
+    date: game.date
+    }).then(
+    function(response) {
+        console.log('Email sent!', response);
+    },
+    function(error) {
+        console.log('Email failed:', error);
+    }
+    );       
 }
 
         function adminLogin() {
