@@ -934,8 +934,8 @@ window.addEventListener('load', function() {
     const t2 = game.teams[1].map(p => p.name).join(' & ');
     const winnerTeam = winner === 1 ? t1 : t2;
 
-    emailjs.send(service_r168u8q, template_lawx1fc, {
-    to_email: abelrupertus06@gmail.com,
+    emailjs.send('service_r168u8q', 'template_lawx1fc', {
+    to_email: 'abelrupertus06@gmail.com',
     game_info: `${t1} vs ${t2}`,
     winner: `Team ${winner} (${winnerTeam})`,
     date: game.date
