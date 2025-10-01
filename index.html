@@ -929,6 +929,7 @@ window.addEventListener('load', function() {
     showPage('home');
     saveToFirebase();
 
+        console.log('About to send email...');
     const t1 = game.teams[0].map(p => p.name).join(' & ');
     const t2 = game.teams[1].map(p => p.name).join(' & ');
     const winnerTeam = winner === 1 ? t1 : t2;
