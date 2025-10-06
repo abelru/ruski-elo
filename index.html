@@ -819,14 +819,13 @@ window.addEventListener('load', function() {
     }
 
     const hadOvertime = document.getElementById('had-overtime').value === 'yes';
-
     const container = document.getElementById('individual-stats');
     let html = '';
     
-    // If overtime, ask who hit the redemption cup first
+    // If overtime, ask who hit the redemption cup that forced OT
     if (hadOvertime) {
         html += `<div style="background:#1a1a00;border:2px solid #ffff00;padding:20px;border-radius:8px;margin-bottom:20px;">
-            <h3 style="color:#ffff00;margin-bottom:15px;">Who hit the Redemption Cup?</h3>
+            <h3 style="color:#ffff00;margin-bottom:15px;">Who hit the Redemption Cup that forced Overtime?</h3>
             <div class="form-group">
                 <select id="redemption-shooter">
                     <option value="">Select Player</option>`;
@@ -838,21 +837,26 @@ window.addEventListener('load', function() {
             }
         }
         
-         html += '</div>';
-    container.innerHTML = html;
+        html += `</select>
+            </div>
+        </div>`;
     }
     
     for (let t = 1; t <= 2; t++) {
         for (let i = 0; i < size; i++) {
             const name = getName(t, i);
             html += `<div class="player-stats"><h4>${name}</h4><div class="stats-grid-form">
-                <div class="form-group"><label>Regular Cups</label><input type="number" id="t${t}p${i}c" min="0" value="0"></div>`;
+                <div class="form-group"><label>Regular Cups</label><input type="number" id="t${t}p${i}c" min="0" value="0"></div>
+                <div class="form-group"><label>Redemption Cups</label><input type="number" id="t${t}p${i}r" min="0" value="0"></div>`;
             
             if (hadOvertime) {
                 html += `<div class="form-group"><label>Overtime Cups</label><input type="number" id="t${t}p${i}o" min="0" value="0"></div>`;
             }
             
             html += `<div class="form-group"><label>Yacks</label><input type="number" id="t${t}p${i}y" min="0" value="0"></div>
+                <div class="form-group"><label>Doubles</label><input type="number" id="t${t}p${i}d" min="0" value="0"></div>
+                <div class="form-group"><label>Tris</label><input type="number" id="t${t}p${i}t" min="0" value="0"></div>
+                <div class="form-group"><label>Quads</label><input type="number" id="t${t}p${i}q" min="0" value="0"></div>
             </div></div>`;
         }
     }
@@ -875,7 +879,7 @@ window.addEventListener('load', function() {
     if (hadOvertime) {
         redemptionShooter = document.getElementById('redemption-shooter').value;
         if (!redemptionShooter) {
-            alert('Please select who hit the redemption cup!');
+            alert('Please select who hit the redemption cup that forced overtime!');
             return;
         }
     }
@@ -898,19 +902,27 @@ window.addEventListener('load', function() {
             }
             
             const cups = parseInt(document.getElementById(`t${t}p${i}c`).value) || 0;
+            const redemptionCupsEl = document.getElementById(`t${t}p${i}r`);
+            const redemptionCups = redemptionCupsEl ? (parseInt(redemptionCupsEl.value) || 0) : 0;
             const overtimeCupsEl = document.getElementById(`t${t}p${i}o`);
             const overtimeCups = (hadOvertime && overtimeCupsEl) ? (parseInt(overtimeCupsEl.value) || 0) : 0;
             const yacks = parseInt(document.getElementById(`t${t}p${i}y`).value) || 0;
+            const doubles = parseInt(document.getElementById(`t${t}p${i}d`).value) || 0;
+            const tris = parseInt(document.getElementById(`t${t}p${i}t`).value) || 0;
+            const quads = parseInt(document.getElementById(`t${t}p${i}q`).value) || 0;
             
-            // If this player hit the redemption cup, give them 1 redemption cup
-            const redemptionCups = (hadOvertime && name === redemptionShooter) ? 1 : 0;
+            // Add bonus redemption cup if this player forced OT
+            const bonusRedemptionCup = (hadOvertime && name === redemptionShooter) ? 1 : 0;
             
             team.push({
                 name: name,
                 cups: cups,
-                redemptionCups: redemptionCups,
+                redemptionCups: redemptionCups + bonusRedemptionCup,
                 overtimeCups: overtimeCups,
                 yacks: yacks,
+                doubles: doubles,
+                tris: tris,
+                quads: quads,
                 nakedMile: cups === 0 && redemptionCups === 0 && overtimeCups === 0
             });
         }
@@ -929,23 +941,23 @@ window.addEventListener('load', function() {
     showPage('home');
     saveToFirebase();
 
-        console.log('About to send email...');
+    console.log('About to send email...');
     const t1 = game.teams[0].map(p => p.name).join(' & ');
     const t2 = game.teams[1].map(p => p.name).join(' & ');
     const winnerTeam = winner === 1 ? t1 : t2;
 
     emailjs.send('service_r168u8q', 'template_lawx1fc', {
-    to_email: 'abelrupertus06@gmail.com',
-    game_info: `${t1} vs ${t2}`,
-    winner: `Team ${winner} (${winnerTeam})`,
-    date: game.date
+        to_email: 'abelrupertus06@gmail.com',
+        game_info: `${t1} vs ${t2}`,
+        winner: `Team ${winner} (${winnerTeam})`,
+        date: game.date
     }).then(
-    function(response) {
-        console.log('Email sent!', response);
-    },
-    function(error) {
-        console.log('Email failed:', error);
-    }
+        function(response) {
+            console.log('Email sent!', response);
+        },
+        function(error) {
+            console.log('Email failed:', error);
+        }
     );       
 }
 
@@ -1015,61 +1027,85 @@ window.addEventListener('load', function() {
             
             game.teams[0].forEach((p, i) => {
                 html += `
-                    <div style="background:#0a0a0a;padding:15px;margin:10px 0;border-radius:5px;">
-                        <div class="form-group">
-                            <label>Player Name</label>
-                            <select id="edit-t1p${i}">
-                                ${playerRoster.map(name => `<option value="${name}" ${name === p.name ? 'selected' : ''}>${name}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Regular Cups</label>
-                            <input type="number" id="edit-t1c${i}" value="${p.cups}" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Redemption Cups</label>
-                            <input type="number" id="edit-t1r${i}" value="${p.redemptionCups || 0}" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Overtime Cups</label>
-                            <input type="number" id="edit-t1o${i}" value="${p.overtimeCups || 0}" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Yacks</label>
-                            <input type="number" id="edit-t1y${i}" value="${p.yacks}" min="0">
-                        </div>
-                    </div>`;
+    <div style="background:#0a0a0a;padding:15px;margin:10px 0;border-radius:5px;">
+        <div class="form-group">
+            <label>Player Name</label>
+            <select id="edit-t1p${i}">
+                ${playerRoster.map(name => `<option value="${name}" ${name === p.name ? 'selected' : ''}>${name}</option>`).join('')}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Regular Cups</label>
+            <input type="number" id="edit-t1c${i}" value="${p.cups}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Redemption Cups</label>
+            <input type="number" id="edit-t1r${i}" value="${p.redemptionCups || 0}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Overtime Cups</label>
+            <input type="number" id="edit-t1o${i}" value="${p.overtimeCups || 0}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Yacks</label>
+            <input type="number" id="edit-t1y${i}" value="${p.yacks}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Doubles</label>
+            <input type="number" id="edit-t1d${i}" value="${p.doubles || 0}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Tris</label>
+            <input type="number" id="edit-t1t${i}" value="${p.tris || 0}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Quads</label>
+            <input type="number" id="edit-t1q${i}" value="${p.quads || 0}" min="0">
+        </div>
+    </div>`;
             });
             
             html += `<h3 style="color:#ffff00;margin-top:20px;">Team 2 Players</h3>`;
-            
-            game.teams[1].forEach((p, i) => {
-                html += `
-                    <div style="background:#0a0a0a;padding:15px;margin:10px 0;border-radius:5px;">
-                        <div class="form-group">
-                            <label>Player Name</label>
-                            <select id="edit-t2p${i}">
-                                ${playerRoster.map(name => `<option value="${name}" ${name === p.name ? 'selected' : ''}>${name}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Regular Cups</label>
-                            <input type="number" id="edit-t2c${i}" value="${p.cups}" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Redemption Cups</label>
-                            <input type="number" id="edit-t2r${i}" value="${p.redemptionCups || 0}" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Overtime Cups</label>
-                            <input type="number" id="edit-t2o${i}" value="${p.overtimeCups || 0}" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Yacks</label>
-                            <input type="number" id="edit-t2y${i}" value="${p.yacks}" min="0">
-                        </div>
-                    </div>`;
-            });
+
+game.teams[1].forEach((p, i) => {
+    html += `
+        <div style="background:#0a0a0a;padding:15px;margin:10px 0;border-radius:5px;">
+            <div class="form-group">
+                <label>Player Name</label>
+                <select id="edit-t2p${i}">
+                    ${playerRoster.map(name => `<option value="${name}" ${name === p.name ? 'selected' : ''}>${name}</option>`).join('')}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Regular Cups</label>
+                <input type="number" id="edit-t2c${i}" value="${p.cups}" min="0">
+            </div>
+            <div class="form-group">
+                <label>Redemption Cups</label>
+                <input type="number" id="edit-t2r${i}" value="${p.redemptionCups || 0}" min="0">
+            </div>
+            <div class="form-group">
+                <label>Overtime Cups</label>
+                <input type="number" id="edit-t2o${i}" value="${p.overtimeCups || 0}" min="0">
+            </div>
+            <div class="form-group">
+                <label>Yacks</label>
+                <input type="number" id="edit-t2y${i}" value="${p.yacks}" min="0">
+            </div>
+            <div class="form-group">
+                <label>Doubles</label>
+                <input type="number" id="edit-t2d${i}" value="${p.doubles || 0}" min="0">
+            </div>
+            <div class="form-group">
+                <label>Tris</label>
+                <input type="number" id="edit-t2t${i}" value="${p.tris || 0}" min="0">
+            </div>
+            <div class="form-group">
+                <label>Quads</label>
+                <input type="number" id="edit-t2q${i}" value="${p.quads || 0}" min="0">
+            </div>
+        </div>`;
+});
             
             html += `
                     <button class="btn" onclick="saveGameEdit(${index})" style="background:#00ff00;">Save Changes</button>
@@ -1081,25 +1117,28 @@ window.addEventListener('load', function() {
         }
 
         function saveGameEdit(index) {
-            const game = approvedGames[index];
-            game.winningTeam = parseInt(document.getElementById('edit-winner').value);
-            
-            for (let t = 0; t < 2; t++) {
-                game.teams[t].forEach((p, i) => {
-                    const teamNum = t + 1;
-                    p.name = document.getElementById(`edit-t${teamNum}p${i}`).value;
-                    p.cups = parseInt(document.getElementById(`edit-t${teamNum}c${i}`).value) || 0;
-                    p.redemptionCups = parseInt(document.getElementById(`edit-t${teamNum}r${i}`).value) || 0;
-                    p.overtimeCups = parseInt(document.getElementById(`edit-t${teamNum}o${i}`).value) || 0;
-                    p.yacks = parseInt(document.getElementById(`edit-t${teamNum}y${i}`).value) || 0;
-                });
-            }
-            
-            alert('Game updated!');
-            updateApprovedGamesDisplay();
-            updateAllGamesList();
-            saveToFirebase();
-        }
+    const game = approvedGames[index];
+    game.winningTeam = parseInt(document.getElementById('edit-winner').value);
+    
+    for (let t = 0; t < 2; t++) {
+        game.teams[t].forEach((p, i) => {
+            const teamNum = t + 1;
+            p.name = document.getElementById(`edit-t${teamNum}p${i}`).value;
+            p.cups = parseInt(document.getElementById(`edit-t${teamNum}c${i}`).value) || 0;
+            p.redemptionCups = parseInt(document.getElementById(`edit-t${teamNum}r${i}`).value) || 0;
+            p.overtimeCups = parseInt(document.getElementById(`edit-t${teamNum}o${i}`).value) || 0;
+            p.yacks = parseInt(document.getElementById(`edit-t${teamNum}y${i}`).value) || 0;
+            p.doubles = parseInt(document.getElementById(`edit-t${teamNum}d${i}`).value) || 0;
+            p.tris = parseInt(document.getElementById(`edit-t${teamNum}t${i}`).value) || 0;
+            p.quads = parseInt(document.getElementById(`edit-t${teamNum}q${i}`).value) || 0;
+        });
+    }
+    
+    alert('Game updated!');
+    updateApprovedGamesDisplay();
+    updateAllGamesList();
+    saveToFirebase();
+}
 
         function cancelEdit() {
             updateApprovedGamesDisplay();
@@ -1214,69 +1253,100 @@ window.addEventListener('load', function() {
         }
 
         function calculateELO(playerName) {
-            let elo = 1000;
-            const gamesPerDay = {};
-            
-            approvedGames.forEach(game => {
-                let playerTeam = null;
-                let playerData = null;
-                
-                game.teams.forEach((team, teamIndex) => {
-                    team.forEach(player => {
-                        if (player.name === playerName) {
-                            playerTeam = teamIndex + 1;
-                            playerData = player;
-                        }
-                    });
-                });
-                
-                if (playerTeam) {
-                    const gameDate = game.date.split(',')[0];
-                    gamesPerDay[gameDate] = (gamesPerDay[gameDate] || 0) + 1;
-                    const gameNumber = gamesPerDay[gameDate];
-                    
-                    const isWinner = playerTeam === game.winningTeam;
-                    const teamSize = game.size;
-                    
-                    const regularCupPoints = playerData.cups * 5;
-                    const redemptionCupPoints = (playerData.redemptionCups || 0) * 15;
-                    const overtimeCupPoints = (playerData.overtimeCups || 0) * 7.5;
-                    const totalCupPoints = regularCupPoints + redemptionCupPoints + overtimeCupPoints;
-                    
-                    const yackPenalty = playerData.yacks * -15;
-                    
-                    let eloChange = 0;
-                    
-                    if (isWinner) {
-                        const winShare = 100 / teamSize;
-                        
-                        const losingTeam = game.teams[playerTeam === 1 ? 1 : 0];
-                        const opponentAvgCups = losingTeam.reduce((sum, p) => sum + p.cups, 0) / losingTeam.length;
-                        const marginBonus = Math.max(0, (playerData.cups - opponentAvgCups) * 3);
-                        
-                        eloChange = winShare + totalCupPoints + marginBonus + yackPenalty;
-                    } else {
-                        const winningTeam = game.teams[playerTeam === 1 ? 1 : 0];
-                        const opponentAvgCups = winningTeam.reduce((sum, p) => sum + p.cups, 0) / winningTeam.length;
-                        
-                        const lossPenalty = -50 / teamSize;
-                        const marginPenalty = Math.min(0, (playerData.cups - opponentAvgCups) * 3);
-                        
-                        eloChange = lossPenalty + totalCupPoints + marginPenalty + yackPenalty;
-                    }
-                    
-                    if (gameNumber === 2) {
-                        eloChange *= 1.20;
-                    } else if (gameNumber >= 3) {
-                        eloChange *= 1.30;
-                    }
-                    
-                    elo += eloChange;
+    let elo = 1000;
+    const gamesPerDay = {};
+    
+    approvedGames.forEach(game => {
+        let playerTeam = null;
+        let playerData = null;
+        
+        game.teams.forEach((team, teamIndex) => {
+            team.forEach(player => {
+                if (player.name === playerName) {
+                    playerTeam = teamIndex + 1;
+                    playerData = player;
                 }
             });
+        });
+        
+        if (playerTeam) {
+            const gameDate = game.date.split(',')[0];
+            gamesPerDay[gameDate] = (gamesPerDay[gameDate] || 0) + 1;
+            const gameNumber = gamesPerDay[gameDate];
             
-            return Math.round(elo);
+            const isWinner = playerTeam === game.winningTeam;
+            const teamSize = game.size;
+            
+            // Calculate total cups available (10 cups per player on opposing team)
+            const opponentTeam = game.teams[playerTeam === 1 ? 1 : 0];
+            let totalCupsAvailable = opponentTeam.length * 10;
+            
+            // Subtract cups removed by tris/quads/doubles (these don't count as "hitting" cups)
+            opponentTeam.forEach(p => {
+                const doubles = p.doubles || 0;
+                const tris = p.tris || 0;
+                const quads = p.quads || 0;
+                // Doubles remove 1 extra cup, tris remove 2 extra, quads remove 3 extra
+                totalCupsAvailable -= (doubles * 1 + tris * 2 + quads * 3);
+            });
+            
+            // Ensure we don't go below 1
+            totalCupsAvailable = Math.max(1, totalCupsAvailable);
+            
+            // Calculate percentage of available cups hit
+            const cupsHitByPlayer = playerData.cups + (playerData.redemptionCups || 0) + (playerData.overtimeCups || 0);
+            const cupPercentage = cupsHitByPlayer / totalCupsAvailable;
+            
+            // Cup points based on percentage (scaled to make it meaningful)
+            const regularCupPoints = playerData.cups * 5;
+            const redemptionCupPoints = (playerData.redemptionCups || 0) * 15;
+            const overtimeCupPoints = (playerData.overtimeCups || 0) * 7.5;
+            const percentageBonus = cupPercentage * 50; // Bonus for high percentage
+            const totalCupPoints = regularCupPoints + redemptionCupPoints + overtimeCupPoints + percentageBonus;
+            
+            const yackPenalty = playerData.yacks * -15;
+            
+            let eloChange = 0;
+            
+            if (isWinner) {
+                const winShare = 100 / teamSize;
+                
+                // Calculate opponent average percentage
+                const opponentAvgPercentage = opponentTeam.reduce((sum, p) => {
+                    const oppCups = p.cups + (p.redemptionCups || 0) + (p.overtimeCups || 0);
+                    return sum + (oppCups / totalCupsAvailable);
+                }, 0) / opponentTeam.length;
+                
+                const marginBonus = Math.max(0, (cupPercentage - opponentAvgPercentage) * 100);
+                
+                eloChange = winShare + totalCupPoints + marginBonus + yackPenalty;
+            } else {
+                // INCREASED loss penalty
+                const lossPenalty = -75 / teamSize; // Was -50, now -75
+                
+                const winningTeam = game.teams[playerTeam === 1 ? 1 : 0];
+                const opponentAvgPercentage = winningTeam.reduce((sum, p) => {
+                    const oppCups = p.cups + (p.redemptionCups || 0) + (p.overtimeCups || 0);
+                    return sum + (oppCups / totalCupsAvailable);
+                }, 0) / winningTeam.length;
+                
+                const marginPenalty = Math.min(0, (cupPercentage - opponentAvgPercentage) * 100);
+                
+                eloChange = lossPenalty + totalCupPoints + marginPenalty + yackPenalty;
+            }
+            
+            if (gameNumber === 2) {
+                eloChange *= 1.20;
+            } else if (gameNumber >= 3) {
+                eloChange *= 1.30;
+            }
+            
+            elo += eloChange;
         }
+    });
+    
+    return Math.round(elo);
+}
 
         function getPlayerStats(playerName) {
             let games = 0;
