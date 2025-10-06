@@ -1281,64 +1281,65 @@ game.teams[1].forEach((p, i) => {
             const opponentTeam = game.teams[playerTeam === 1 ? 1 : 0];
             let totalCupsAvailable = opponentTeam.length * 10;
             
-            // Subtract cups removed by tris/quads/doubles (these don't count as "hitting" cups)
+            // Subtract cups removed by tris/quads/doubles
             opponentTeam.forEach(p => {
                 const doubles = p.doubles || 0;
                 const tris = p.tris || 0;
                 const quads = p.quads || 0;
-                // Doubles remove 1 extra cup, tris remove 2 extra, quads remove 3 extra
                 totalCupsAvailable -= (doubles * 1 + tris * 2 + quads * 3);
             });
             
-            // Ensure we don't go below 1
             totalCupsAvailable = Math.max(1, totalCupsAvailable);
             
-            // Calculate percentage of available cups hit
+            // Calculate cups hit
             const cupsHitByPlayer = playerData.cups + (playerData.redemptionCups || 0) + (playerData.overtimeCups || 0);
             const cupPercentage = cupsHitByPlayer / totalCupsAvailable;
             
-            // Cup points based on percentage (scaled to make it meaningful)
-            const regularCupPoints = playerData.cups * 5;
-            const redemptionCupPoints = (playerData.redemptionCups || 0) * 15;
-            const overtimeCupPoints = (playerData.overtimeCups || 0) * 7.5;
-            const percentageBonus = cupPercentage * 50; // Bonus for high percentage
-            const totalCupPoints = regularCupPoints + redemptionCupPoints + overtimeCupPoints + percentageBonus;
-            
-            const yackPenalty = playerData.yacks * -15;
+            // REBALANCED SYSTEM - Wins and cups are primary factors
+            const yackPenalty = playerData.yacks * -20; // Increased yack penalty
             
             let eloChange = 0;
             
             if (isWinner) {
-                const winShare = 100 / teamSize;
+                // WIN IS WORTH THE MOST
+                const winBonus = 150 / teamSize; // Increased from 100
                 
-                // Calculate opponent average percentage
+                // Cup performance bonus (scaled by percentage)
+                const cupPerformanceBonus = cupPercentage * 80; // Cups hit relative to available
+                
+                // Small margin bonus
                 const opponentAvgPercentage = opponentTeam.reduce((sum, p) => {
                     const oppCups = p.cups + (p.redemptionCups || 0) + (p.overtimeCups || 0);
                     return sum + (oppCups / totalCupsAvailable);
                 }, 0) / opponentTeam.length;
                 
-                const marginBonus = Math.max(0, (cupPercentage - opponentAvgPercentage) * 100);
+                const marginBonus = Math.max(0, (cupPercentage - opponentAvgPercentage) * 30);
                 
-                eloChange = winShare + totalCupPoints + marginBonus + yackPenalty;
+                eloChange = winBonus + cupPerformanceBonus + marginBonus + yackPenalty;
             } else {
-                // INCREASED loss penalty
-                const lossPenalty = -75 / teamSize; // Was -50, now -75
+                // LOSING HURTS MORE
+                const lossPenalty = -100 / teamSize; // Increased from -75
                 
+                // You still get some credit for cups hit, but less than winners
+                const cupPerformanceBonus = cupPercentage * 40; // Half of what winners get
+                
+                // Margin penalty for performing worse than opponents
                 const winningTeam = game.teams[playerTeam === 1 ? 1 : 0];
                 const opponentAvgPercentage = winningTeam.reduce((sum, p) => {
                     const oppCups = p.cups + (p.redemptionCups || 0) + (p.overtimeCups || 0);
                     return sum + (oppCups / totalCupsAvailable);
                 }, 0) / winningTeam.length;
                 
-                const marginPenalty = Math.min(0, (cupPercentage - opponentAvgPercentage) * 100);
+                const marginPenalty = Math.min(0, (cupPercentage - opponentAvgPercentage) * 30);
                 
-                eloChange = lossPenalty + totalCupPoints + marginPenalty + yackPenalty;
+                eloChange = lossPenalty + cupPerformanceBonus + marginPenalty + yackPenalty;
             }
             
+            // REDUCED multi-game bonus - playing more games shouldn't dominate
             if (gameNumber === 2) {
-                eloChange *= 1.20;
+                eloChange *= 1.05; // Was 1.20, now just 5% bonus
             } else if (gameNumber >= 3) {
-                eloChange *= 1.30;
+                eloChange *= 1.10; // Was 1.30, now just 10% bonus
             }
             
             elo += eloChange;
