@@ -270,36 +270,104 @@
             </div>
 
             <div class="card">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                    <h2>Highlights</h2>
-                    <div style="display:flex;gap:10px;">
-                        <button class="btn" onclick="setPeriod('week')" id="btn-week" style="padding:8px 15px;">Week</button>
-                        <button class="btn" onclick="setPeriod('month')" id="btn-month" style="padding:8px 15px;background:#666;">Month</button>
-                        <button class="btn" onclick="setPeriod('year')" id="btn-year" style="padding:8px 15px;background:#666;">Year</button>
-                        <button class="btn" onclick="setPeriod('alltime')" id="btn-alltime" style="padding:8px 15px;background:#666;">All Time</button>
-                    </div>
-                </div>
-                <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr));">
-                    <div class="stat-box" style="background:#002a00;border:2px solid #00ff00;">
-                        <div style="font-size:2rem;margin-bottom:10px;">🌟</div>
-                        <div class="stat-label" style="margin-bottom:10px;">TOP PLAYER</div>
-                        <span class="stat-number" style="font-size:1.5rem;" id="top-player">No data</span>
-                        <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="top-player-stat">-</div>
-                    </div>
-                    <div class="stat-box" style="background:#2a0000;border:2px solid #ff0000;">
-                        <div style="font-size:2rem;margin-bottom:10px;">💩</div>
-                        <div class="stat-label" style="margin-bottom:10px;">WORST PLAYER</div>
-                        <span class="stat-number" style="font-size:1.5rem;color:#ff6666;" id="worst-player">No data</span>
-                        <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="worst-player-stat">-</div>
-                    </div>
-                    <div class="stat-box" style="background:#1a1a00;border:2px solid #ffff00;">
-                        <div style="font-size:2rem;margin-bottom:10px;">🔥</div>
-                        <div class="stat-label" style="margin-bottom:10px;">GAME OF PERIOD</div>
-                        <span class="stat-number" style="font-size:1.2rem;color:#ffff00;" id="best-game">No data</span>
-                        <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="best-game-stat">-</div>
-                    </div>
-                </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h2>⚓ Nautical Leaderboards ⚓</h2>
+        <div style="display:flex;gap:10px;">
+            <button class="btn" onclick="setPeriod('week')" id="btn-week" style="padding:8px 15px;">Week</button>
+            <button class="btn" onclick="setPeriod('month')" id="btn-month" style="padding:8px 15px;background:#666;">Month</button>
+            <button class="btn" onclick="setPeriod('year')" id="btn-year" style="padding:8px 15px;background:#666;">Year</button>
+            <button class="btn" onclick="setPeriod('alltime')" id="btn-alltime" style="padding:8px 15px;background:#666;">All Time</button>
+        </div>
+    </div>
+    
+    <!-- Captain's Table - Top Performers -->
+    <div style="background:#001a00;border:2px solid #00ff00;border-radius:10px;padding:20px;margin-bottom:25px;">
+        <h3 style="color:#00ff00;text-align:center;margin-bottom:20px;">🎣 CAPTAIN'S TABLE 🎣</h3>
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+            <div class="stat-box" style="background:#002a00;border:2px solid #00ff00;">
+                <div style="font-size:2rem;margin-bottom:10px;">⛵</div>
+                <div class="stat-label" style="margin-bottom:10px;color:#00ff00;">ADMIRAL</div>
+                <span class="stat-number" style="font-size:1.3rem;" id="highest-elo-player">No data</span>
+                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="highest-elo-stat">Highest ELO</div>
             </div>
+            
+            <div class="stat-box" style="background:#002a00;border:2px solid #00ff00;">
+                <div style="font-size:2rem;margin-bottom:10px;">🎯</div>
+                <div class="stat-label" style="margin-bottom:10px;color:#00ff00;">SHARPSHOOTER</div>
+                <span class="stat-number" style="font-size:1.3rem;" id="most-cups-player">No data</span>
+                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="most-cups-stat">Most Cups Hit</div>
+            </div>
+            
+            <div class="stat-box" style="background:#002a00;border:2px solid #00ff00;">
+                <div style="font-size:2rem;margin-bottom:10px;">🏆</div>
+                <div class="stat-label" style="margin-bottom:10px;color:#00ff00;">CHAMPION</div>
+                <span class="stat-number" style="font-size:1.3rem;" id="best-record-player">No data</span>
+                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="best-record-stat">Best Win Rate</div>
+            </div>
+            
+            <div class="stat-box" style="background:#002a00;border:2px solid #ffaa00;">
+                <div style="font-size:2rem;margin-bottom:10px;">🔱</div>
+                <div class="stat-label" style="margin-bottom:10px;color:#ffaa00;">RISING TIDE</div>
+                <span class="stat-number" style="font-size:1.3rem;color:#ffaa00;" id="best-gain-player">No data</span>
+                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="best-gain-stat">Biggest ELO Gain</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- The Depths - Bottom Performers -->
+    <div style="background:#1a0000;border:2px solid #ff0000;border-radius:10px;padding:20px;margin-bottom:25px;">
+        <h3 style="color:#ff6666;text-align:center;margin-bottom:20px;">⚓ DAVY JONES' LOCKER ⚓</h3>
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+            <div class="stat-box" style="background:#2a0000;border:2px solid #ff0000;">
+                <div style="font-size:2rem;margin-bottom:10px;">🌊</div>
+                <div class="stat-label" style="margin-bottom:10px;color:#ff6666;">OVERBOARD</div>
+                <span class="stat-number" style="font-size:1.3rem;color:#ff6666;" id="worst-player">No data</span>
+                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="worst-player-stat">Worst Win Rate</div>
+            </div>
+            
+            <div class="stat-box" style="background:#2a0000;border:2px solid #ff0000;">
+                <div style="font-size:2rem;margin-bottom:10px;">🤢</div>
+                <div class="stat-label" style="margin-bottom:10px;color:#ff6666;">LANDLUBBER</div>
+                <span class="stat-number" style="font-size:1.3rem;color:#ff6666;" id="most-yacks-player">No data</span>
+                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="most-yacks-stat">Most Yacks</div>
+            </div>
+            
+            <div class="stat-box" style="background:#2a0000;border:2px solid #ff0000;">
+                <div style="font-size:2rem;margin-bottom:10px;">❌</div>
+                <div class="stat-label" style="margin-bottom:10px;color:#ff6666;">SCALLYWAG</div>
+                <span class="stat-number" style="font-size:1.3rem;color:#ff6666;" id="least-cups-player">No data</span>
+                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="least-cups-stat">Fewest Cups Hit</div>
+            </div>
+            
+            <div class="stat-box" style="background:#2a0000;border:2px solid #ff0000;">
+                <div style="font-size:2rem;margin-bottom:10px;">⚓</div>
+                <div class="stat-label" style="margin-bottom:10px;color:#ff6666;">ANCHOR</div>
+                <span class="stat-number" style="font-size:1.3rem;color:#ff6666;" id="worst-loss-player">No data</span>
+                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="worst-loss-stat">Biggest ELO Loss</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Epic Battles -->
+    <div style="background:#1a1a00;border:2px solid #ffff00;border-radius:10px;padding:20px;">
+        <h3 style="color:#ffff00;text-align:center;margin-bottom:20px;">🚣 LEGENDARY REGATTAS 🚣</h3>
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr));">
+            <div class="stat-box" style="background:#2a2a00;border:2px solid #ffff00;">
+                <div style="font-size:2rem;margin-bottom:10px;">🔥</div>
+                <div class="stat-label" style="margin-bottom:10px;color:#ffff00;">BATTLE OF THE AGES</div>
+                <span class="stat-number" style="font-size:1.1rem;color:#ffff00;" id="best-game">No data</span>
+                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="best-game-stat">Most Competitive</div>
+            </div>
+            
+            <div class="stat-box" style="background:#2a2a00;border:2px solid #ffff00;">
+                <div style="font-size:2rem;margin-bottom:10px;">💥</div>
+                <div class="stat-label" style="margin-bottom:10px;color:#ffff00;">MOST BRUTAL</div>
+                <span class="stat-number" style="font-size:1.1rem;color:#ffff00;" id="most-yacks-game">No data</span>
+                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="most-yacks-game-stat">Most Yacks in Game</div>
+            </div>
+        </div>
+    </div>
+</div>
 
             <div class="card">
                 <h2>Recent Games</h2>
@@ -1408,100 +1476,260 @@ game.teams[1].forEach((p, i) => {
         }
 
         function updateHighlights(period) {
-            const now = new Date();
-            let cutoffDate = new Date(0);
-            
-            if (period === 'week') {
-                cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            } else if (period === 'month') {
-                cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            } else if (period === 'year') {
-                cutoffDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-            }
-            
-            const filteredGames = approvedGames.filter(game => {
-                const gameDate = new Date(game.date);
-                return gameDate >= cutoffDate;
-            });
-            
-            if (filteredGames.length === 0) {
-                document.getElementById('top-player').textContent = 'No data';
-                document.getElementById('top-player-stat').textContent = '-';
-                document.getElementById('worst-player').textContent = 'No data';
-                document.getElementById('worst-player-stat').textContent = '-';
-                document.getElementById('best-game').textContent = 'No data';
-                document.getElementById('best-game-stat').textContent = '-';
-                return;
-            }
-            
-            const playerStats = {};
-            filteredGames.forEach(game => {
-                game.teams.forEach((team, teamIndex) => {
-                    team.forEach(player => {
-                        if (!playerStats[player.name]) {
-                            playerStats[player.name] = { wins: 0, losses: 0, cups: 0, games: 0 };
-                        }
-                        playerStats[player.name].games++;
-                        playerStats[player.name].cups += player.cups;
-                        if (teamIndex + 1 === game.winningTeam) {
-                            playerStats[player.name].wins++;
-                        } else {
-                            playerStats[player.name].losses++;
-                        }
-                    });
-                });
-            });
-            
-            let topPlayer = null;
-            let topWinRate = -1;
-            Object.entries(playerStats).forEach(([name, stats]) => {
-                const winRate = stats.wins / stats.games;
-                if (winRate > topWinRate) {
-                    topWinRate = winRate;
-                    topPlayer = { name, ...stats };
+    const now = new Date();
+    let cutoffDate = new Date(0);
+    
+    if (period === 'week') {
+        cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (period === 'month') {
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    } else if (period === 'year') {
+        cutoffDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+    }
+    
+    const filteredGames = approvedGames.filter(game => {
+        const gameDate = new Date(game.date);
+        return gameDate >= cutoffDate;
+    });
+    
+    if (filteredGames.length === 0) {
+        // Reset all to "No data"
+        ['highest-elo-player', 'most-cups-player', 'best-record-player', 'best-gain-player',
+         'worst-player', 'most-yacks-player', 'least-cups-player', 'worst-loss-player',
+         'best-game', 'most-yacks-game'].forEach(id => {
+            document.getElementById(id).textContent = 'No data';
+        });
+        ['highest-elo-stat', 'most-cups-stat', 'best-record-stat', 'best-gain-stat',
+         'worst-player-stat', 'most-yacks-stat', 'least-cups-stat', 'worst-loss-stat',
+         'best-game-stat', 'most-yacks-game-stat'].forEach(id => {
+            document.getElementById(id).textContent = '-';
+        });
+        return;
+    }
+    
+    // Calculate comprehensive player stats
+    const playerStats = {};
+    const playerELOChanges = {};
+    
+    filteredGames.forEach(game => {
+        game.teams.forEach((team, teamIndex) => {
+            team.forEach(player => {
+                if (!playerStats[player.name]) {
+                    playerStats[player.name] = {
+                        wins: 0,
+                        losses: 0,
+                        cups: 0,
+                        yacks: 0,
+                        games: 0,
+                        eloChanges: []
+                    };
                 }
-            });
-            
-            if (topPlayer) {
-                document.getElementById('top-player').textContent = topPlayer.name;
-                document.getElementById('top-player-stat').textContent = `${topPlayer.wins}W-${topPlayer.losses}L (${Math.round(topWinRate * 100)}%)`;
-            }
-            
-            let worstPlayer= null;
-            let worstWinRate = 2;
-            Object.entries(playerStats).forEach(([name, stats]) => {
-                const winRate = stats.wins / stats.games;
-                if (winRate < worstWinRate) {
-                    worstWinRate = winRate;
-                    worstPlayer = { name, ...stats };
+                
+                const stats = playerStats[player.name];
+                stats.games++;
+                stats.cups += player.cups + (player.redemptionCups || 0) + (player.overtimeCups || 0);
+                stats.yacks += player.yacks || 0;
+                
+                if (teamIndex + 1 === game.winningTeam) {
+                    stats.wins++;
+                } else {
+                    stats.losses++;
                 }
-            });
-            
-            if (worstPlayer) {
-                document.getElementById('worst-player').textContent = worstPlayer.name;
-                document.getElementById('worst-player-stat').textContent = `${worstPlayer.wins}W-${worstPlayer.losses}L (${Math.round(worstWinRate * 100)}%)`;
-            }
-            
-            let bestGame = null;
-            let mostCups = 0;
-            filteredGames.forEach(game => {
-                let totalCups = 0;
-                game.teams.forEach(team => {
-                    team.forEach(player => totalCups += player.cups);
-                });
-                if (totalCups > mostCups) {
-                    mostCups = totalCups;
-                    bestGame = game;
+                
+                // Calculate ELO change for this specific game
+                // (simplified calculation - you could make this more accurate)
+                const isWinner = (teamIndex + 1) === game.winningTeam;
+                const teamSize = game.size;
+                const cupsHit = player.cups + (player.redemptionCups || 0) + (player.overtimeCups || 0);
+                
+                let eloChange = 0;
+                if (isWinner) {
+                    eloChange = (150 / teamSize) + (cupsHit * 5) - ((player.yacks || 0) * 20);
+                } else {
+                    eloChange = (-100 / teamSize) + (cupsHit * 2.5) - ((player.yacks || 0) * 20);
                 }
+                
+                stats.eloChanges.push(eloChange);
             });
-            
-            if (bestGame) {
-                const t1 = bestGame.teams[0].map(p => p.name).join(' & ');
-                const t2 = bestGame.teams[1].map(p => p.name).join(' & ');
-                document.getElementById('best-game').textContent = `${t1} vs ${t2}`;
-                document.getElementById('best-game-stat').textContent = `${mostCups} total cups`;
+        });
+    });
+    
+    // 1. ADMIRAL - Highest current ELO
+    let highestELOPlayer = null;
+    let highestELO = 0;
+    Object.keys(playerStats).forEach(name => {
+        const elo = calculateELO(name);
+        if (elo > highestELO) {
+            highestELO = elo;
+            highestELOPlayer = name;
+        }
+    });
+    
+    if (highestELOPlayer) {
+        document.getElementById('highest-elo-player').textContent = highestELOPlayer;
+        document.getElementById('highest-elo-stat').textContent = `${highestELO} ELO`;
+    }
+    
+    // 2. SHARPSHOOTER - Most cups hit
+    let mostCupsPlayer = null;
+    let mostCups = 0;
+    Object.entries(playerStats).forEach(([name, stats]) => {
+        if (stats.cups > mostCups) {
+            mostCups = stats.cups;
+            mostCupsPlayer = name;
+        }
+    });
+    
+    if (mostCupsPlayer) {
+        document.getElementById('most-cups-player').textContent = mostCupsPlayer;
+        document.getElementById('most-cups-stat').textContent = `${mostCups} cups`;
+    }
+    
+    // 3. CHAMPION - Best win rate (min 2 games)
+    let bestRecordPlayer = null;
+    let bestWinRate = -1;
+    Object.entries(playerStats).forEach(([name, stats]) => {
+        if (stats.games >= 2) {
+            const winRate = stats.wins / stats.games;
+            if (winRate > bestWinRate) {
+                bestWinRate = winRate;
+                bestRecordPlayer = { name, ...stats };
             }
         }
+    });
+    
+    if (bestRecordPlayer) {
+        document.getElementById('best-record-player').textContent = bestRecordPlayer.name;
+        document.getElementById('best-record-stat').textContent = 
+            `${bestRecordPlayer.wins}-${bestRecordPlayer.losses} (${Math.round(bestWinRate * 100)}%)`;
+    }
+    
+    // 4. RISING TIDE - Biggest single ELO gain
+    let bestGainPlayer = null;
+    let bestGain = 0;
+    Object.entries(playerStats).forEach(([name, stats]) => {
+        const maxGain = Math.max(...stats.eloChanges);
+        if (maxGain > bestGain) {
+            bestGain = maxGain;
+            bestGainPlayer = name;
+        }
+    });
+    
+    if (bestGainPlayer) {
+        document.getElementById('best-gain-player').textContent = bestGainPlayer;
+        document.getElementById('best-gain-stat').textContent = `+${Math.round(bestGain)} in one game`;
+    }
+    
+    // 5. OVERBOARD - Worst win rate (min 2 games)
+    let worstPlayer = null;
+    let worstWinRate = 2;
+    Object.entries(playerStats).forEach(([name, stats]) => {
+        if (stats.games >= 2) {
+            const winRate = stats.wins / stats.games;
+            if (winRate < worstWinRate) {
+                worstWinRate = winRate;
+                worstPlayer = { name, ...stats };
+            }
+        }
+    });
+    
+    if (worstPlayer) {
+        document.getElementById('worst-player').textContent = worstPlayer.name;
+        document.getElementById('worst-player-stat').textContent = 
+            `${worstPlayer.wins}-${worstPlayer.losses} (${Math.round(worstWinRate * 100)}%)`;
+    }
+    
+    // 6. LANDLUBBER - Most yacks
+    let mostYacksPlayer = null;
+    let mostYacks = 0;
+    Object.entries(playerStats).forEach(([name, stats]) => {
+        if (stats.yacks > mostYacks) {
+            mostYacks = stats.yacks;
+            mostYacksPlayer = name;
+        }
+    });
+    
+    if (mostYacksPlayer && mostYacks > 0) {
+        document.getElementById('most-yacks-player').textContent = mostYacksPlayer;
+        document.getElementById('most-yacks-stat').textContent = `${mostYacks} yacks`;
+    }
+    
+    // 7. SCALLYWAG - Fewest cups (min 2 games)
+    let leastCupsPlayer = null;
+    let leastCups = Infinity;
+    Object.entries(playerStats).forEach(([name, stats]) => {
+        if (stats.games >= 2 && stats.cups < leastCups) {
+            leastCups = stats.cups;
+            leastCupsPlayer = name;
+        }
+    });
+    
+    if (leastCupsPlayer) {
+        document.getElementById('least-cups-player').textContent = leastCupsPlayer;
+        document.getElementById('least-cups-stat').textContent = `${leastCups} cups`;
+    }
+    
+    // 8. ANCHOR - Biggest single ELO loss
+    let worstLossPlayer = null;
+    let worstLoss = 0;
+    Object.entries(playerStats).forEach(([name, stats]) => {
+        const maxLoss = Math.min(...stats.eloChanges);
+        if (maxLoss < worstLoss) {
+            worstLoss = maxLoss;
+            worstLossPlayer = name;
+        }
+    });
+    
+    if (worstLossPlayer) {
+        document.getElementById('worst-loss-player').textContent = worstLossPlayer;
+        document.getElementById('worst-loss-stat').textContent = `${Math.round(worstLoss)} in one game`;
+    }
+    
+    // 9. BATTLE OF THE AGES - Closest game (smallest cup differential)
+    let bestGame = null;
+    let smallestDiff = Infinity;
+    filteredGames.forEach(game => {
+        const t1Cups = game.teams[0].reduce((sum, p) => sum + p.cups + (p.redemptionCups || 0) + (p.overtimeCups || 0), 0);
+        const t2Cups = game.teams[1].reduce((sum, p) => sum + p.cups + (p.redemptionCups || 0) + (p.overtimeCups || 0), 0);
+        const diff = Math.abs(t1Cups - t2Cups);
+        
+        if (diff < smallestDiff) {
+            smallestDiff = diff;
+            bestGame = game;
+        }
+    });
+    
+    if (bestGame) {
+        const t1 = bestGame.teams[0].map(p => p.name).join(' & ');
+        const t2 = bestGame.teams[1].map(p => p.name).join(' & ');
+        const t1Cups = bestGame.teams[0].reduce((sum, p) => sum + p.cups, 0);
+        const t2Cups = bestGame.teams[1].reduce((sum, p) => sum + p.cups, 0);
+        document.getElementById('best-game').textContent = `${t1} vs ${t2}`;
+        document.getElementById('best-game-stat').textContent = `${t1Cups}-${t2Cups} (diff: ${smallestDiff})`;
+    }
+    
+    // 10. MOST BRUTAL - Game with most yacks
+    let mostYacksGame = null;
+    let maxYacks = 0;
+    filteredGames.forEach(game => {
+        let totalYacks = 0;
+        game.teams.forEach(team => {
+            team.forEach(player => totalYacks += player.yacks || 0);
+        });
+        
+        if (totalYacks > maxYacks) {
+            maxYacks = totalYacks;
+            mostYacksGame = game;
+        }
+    });
+    
+    if (mostYacksGame && maxYacks > 0) {
+        const t1 = mostYacksGame.teams[0].map(p => p.name).join(' & ');
+        const t2 = mostYacksGame.teams[1].map(p => p.name).join(' & ');
+        document.getElementById('most-yacks-game').textContent = `${t1} vs ${t2}`;
+        document.getElementById('most-yacks-game-stat').textContent = `${maxYacks} yacks total`;
+    }
+}
 
         function updateHomeStats() {
             document.getElementById('total-players').textContent = playerRoster.length;
