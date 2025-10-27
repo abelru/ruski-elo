@@ -1359,56 +1359,85 @@ game.teams[1].forEach((p, i) => {
             
             totalCupsAvailable = Math.max(1, totalCupsAvailable);
             
-            // Calculate cups hit
-            const cupsHitByPlayer = playerData.cups + (playerData.redemptionCups || 0) + (playerData.overtimeCups || 0);
-            const cupPercentage = cupsHitByPlayer / totalCupsAvailable;
+            // Calculate cups hit (including all types)
+            const regularCups = playerData.cups || 0;
+            const redemptionCups = playerData.redemptionCups || 0;
+            const overtimeCups = playerData.overtimeCups || 0;
+            const totalCupsHit = regularCups + redemptionCups + overtimeCups;
             
-            // REBALANCED SYSTEM - Wins and cups are primary factors
-            const yackPenalty = playerData.yacks * -20; // Increased yack penalty
+            // NEW CUP-CENTRIC FORMULA
+            // ======================
             
-            let eloChange = 0;
+            // BASE CUP PERFORMANCE (This is now the PRIMARY factor)
+            // Each cup is worth a base amount, with bonuses for special cups
+            const cupPoints = (regularCups * 10) + 
+                            (redemptionCups * 20) +  // Redemption cups worth double
+                            (overtimeCups * 15);      // Overtime cups worth 1.5x
             
+            // FAIR SHARE ADJUSTMENT
+            // "Fair share" is 5 cups for 2v2 (10 total cups / 2 players)
+            // Adjust based on team size
+            const fairShareCups = 10 / teamSize;
+            const cupsAboveFairShare = totalCupsHit - fairShareCups;
+            
+            // Performance multiplier based on how much above/below fair share
+            // If you hit exactly fair share (5 cups in 2v2), multiplier is 1.0
+            // Each cup above fair share adds bonus, each below subtracts
+            const performanceMultiplier = 1 + (cupsAboveFairShare * 0.15);
+            
+            // WIN/LOSS BONUS (Much smaller now - winning is just a small bonus)
+            let winLossAdjustment = 0;
             if (isWinner) {
-                // WIN IS WORTH THE MOST
-                const winBonus = 150 / teamSize; // Increased from 100
-                
-                // Cup performance bonus (scaled by percentage)
-                const cupPerformanceBonus = cupPercentage * 80; // Cups hit relative to available
-                
-                // Small margin bonus
-                const opponentAvgPercentage = opponentTeam.reduce((sum, p) => {
-                    const oppCups = p.cups + (p.redemptionCups || 0) + (p.overtimeCups || 0);
-                    return sum + (oppCups / totalCupsAvailable);
-                }, 0) / opponentTeam.length;
-                
-                const marginBonus = Math.max(0, (cupPercentage - opponentAvgPercentage) * 30);
-                
-                eloChange = winBonus + cupPerformanceBonus + marginBonus + yackPenalty;
+                // Winners get a small flat bonus that decreases with team size
+                winLossAdjustment = 20 / teamSize;
             } else {
-                // LOSING HURTS MORE
-                const lossPenalty = -100 / teamSize; // Increased from -75
-                
-                // You still get some credit for cups hit, but less than winners
-                const cupPerformanceBonus = cupPercentage * 40; // Half of what winners get
-                
-                // Margin penalty for performing worse than opponents
-                const winningTeam = game.teams[playerTeam === 1 ? 1 : 0];
-                const opponentAvgPercentage = winningTeam.reduce((sum, p) => {
-                    const oppCups = p.cups + (p.redemptionCups || 0) + (p.overtimeCups || 0);
-                    return sum + (oppCups / totalCupsAvailable);
-                }, 0) / winningTeam.length;
-                
-                const marginPenalty = Math.min(0, (cupPercentage - opponentAvgPercentage) * 30);
-                
-                eloChange = lossPenalty + cupPerformanceBonus + marginPenalty + yackPenalty;
+                // Losers only get penalized if below fair share
+                if (totalCupsHit < fairShareCups) {
+                    // Penalty scales with how far below fair share you are
+                    winLossAdjustment = cupsAboveFairShare * 15; // This will be negative
+                } else {
+                    // Hit your fair share or more? No penalty for losing!
+                    winLossAdjustment = 0;
+                }
             }
             
-            // REDUCED multi-game bonus - playing more games shouldn't dominate
-            if (gameNumber === 2) {
-                eloChange *= 1.05; // Was 1.20, now just 5% bonus
-            } else if (gameNumber >= 3) {
-                eloChange *= 1.10; // Was 1.30, now just 10% bonus
+            // YACK PENALTY (Keep this harsh to discourage yacking)
+            const yackPenalty = (playerData.yacks || 0) * -25;
+            
+            // CLUTCH BONUS - Reward game-winning shots
+            let clutchBonus = 0;
+            if (isWinner && redemptionCups > 0) {
+                clutchBonus = 15; // Bonus for hitting redemption cups in a win
             }
+            if (isWinner && overtimeCups > 0) {
+                clutchBonus += 10; // Additional bonus for overtime cups
+            }
+            
+            // CALCULATE TOTAL ELO CHANGE
+            let eloChange = (cupPoints * performanceMultiplier) + 
+                          winLossAdjustment + 
+                          clutchBonus + 
+                          yackPenalty;
+            
+            // MULTI-GAME BONUS (Keep small to not dominate)
+            if (gameNumber === 2) {
+                eloChange *= 1.05;
+            } else if (gameNumber >= 3) {
+                eloChange *= 1.10;
+            }
+            
+            // Debug logging (optional - remove in production)
+            /*
+            console.log(`${playerName} - Game ${gameNumber}:
+                Cups: ${totalCupsHit} (Fair share: ${fairShareCups})
+                Cup Points: ${cupPoints}
+                Performance Multiplier: ${performanceMultiplier.toFixed(2)}
+                Win/Loss: ${winLossAdjustment.toFixed(1)}
+                Clutch: ${clutchBonus}
+                Yacks: ${yackPenalty}
+                Total Change: ${eloChange.toFixed(1)}
+            `);
+            */
             
             elo += eloChange;
         }
@@ -1416,6 +1445,49 @@ game.teams[1].forEach((p, i) => {
     
     return Math.round(elo);
 }
+
+// EXAMPLE SCENARIOS WITH NEW FORMULA:
+// ====================================
+
+// Scenario 1: Win but only hit 1 cup (2v2)
+// Cup Points: 1 * 10 = 10
+// Fair share: 5, so -4 cups below
+// Performance Multiplier: 1 + (-4 * 0.15) = 0.4
+// Cup contribution: 10 * 0.4 = 4
+// Win bonus: 20/2 = 10
+// Total: ~14 points (very small gain for winning with poor performance)
+
+// Scenario 2: Lose but hit 9 cups (2v2)
+// Cup Points: 9 * 10 = 90
+// Fair share: 5, so +4 cups above
+// Performance Multiplier: 1 + (4 * 0.15) = 1.6
+// Cup contribution: 90 * 1.6 = 144
+// Loss penalty: 0 (hit more than fair share!)
+// Total: ~144 points (big gain despite losing!)
+
+// Scenario 3: Lose and hit exactly 5 cups (2v2)
+// Cup Points: 5 * 10 = 50
+// Fair share: 5, so exactly on target
+// Performance Multiplier: 1.0
+// Cup contribution: 50 * 1.0 = 50
+// Loss penalty: 0 (hit fair share)
+// Total: 50 points (no penalty for losing if you did your part!)
+
+// Scenario 4: Win and hit 8 cups (2v2)
+// Cup Points: 8 * 10 = 80
+// Fair share: 5, so +3 cups above
+// Performance Multiplier: 1 + (3 * 0.15) = 1.45
+// Cup contribution: 80 * 1.45 = 116
+// Win bonus: 20/2 = 10
+// Total: ~126 points (good reward for strong performance)
+
+// Scenario 5: Lose and hit only 2 cups (2v2)
+// Cup Points: 2 * 10 = 20
+// Fair share: 5, so -3 cups below
+// Performance Multiplier: 1 + (-3 * 0.15) = 0.55
+// Cup contribution: 20 * 0.55 = 11
+// Loss penalty: -3 * 15 = -45
+// Total: ~-34 points (penalty for poor performance)
 
         function getPlayerStats(playerName) {
             let games = 0;
