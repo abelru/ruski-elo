@@ -407,7 +407,11 @@
                             <option value="no">No</option>
                             <option value="yes">Yes</option>
                         </select>
+                    <div class="form-group">
+                        <label>Game Name (Optional)</label>
+                        <input type="text" id="game-name" placeholder="e.g., Birds Game, Championship Match">
                     </div>
+                     </div>
                     <div id="teams-container"></div>
                     <button class="btn" onclick="goToStep2()" id="next-btn" style="display:none;">Next</button>
                 </div>
@@ -932,6 +936,12 @@ window.addEventListener('load', function() {
     document.getElementById('step1').style.display = 'none';
     document.getElementById('step2').style.display = 'block';
 }
+        const gameNameFieldHTML = `
+<div class="form-group">
+    <label>Game Name (Optional)</label>
+    <input type="text" id="game-name" placeholder="e.g., Championship Finals, Saturday Night Showdown, etc.">
+</div>
+`;
 
         function goToStep1() {
             document.getElementById('step1').style.display = 'block';
@@ -941,92 +951,79 @@ window.addEventListener('load', function() {
         function submitGame() {
     const size = parseInt(document.getElementById('team-size').value);
     const winner = parseInt(document.getElementById('winning-team').value);
+    const gameName = document.getElementById('game-name').value.trim() || null; // NEW: Get game name
     const hadOvertime = document.getElementById('had-overtime').value === 'yes';
+    const redemptionShooter = hadOvertime ? document.getElementById('redemption-shooter').value : null;
     
-    let redemptionShooter = '';
-    if (hadOvertime) {
-        redemptionShooter = document.getElementById('redemption-shooter').value;
-        if (!redemptionShooter) {
-            alert('Please select who hit the redemption cup that forced overtime!');
-            return;
-        }
-    }
-    
-    const game = {
-        id: gameIdCounter++,
-        date: new Date().toLocaleString(),
-        size: size,
-        winningTeam: winner,
-        teams: []
-    };
+    const teams = [[], []];
     
     for (let t = 1; t <= 2; t++) {
-        const team = [];
         for (let i = 0; i < size; i++) {
-            const name = getName(t, i);
-            if (!playerRoster.includes(name)) {
-                playerRoster.push(name);
-                playerRoster.sort();
-            }
-            
             const cups = parseInt(document.getElementById(`t${t}p${i}c`).value) || 0;
-            const redemptionCupsEl = document.getElementById(`t${t}p${i}r`);
-            const redemptionCups = redemptionCupsEl ? (parseInt(redemptionCupsEl.value) || 0) : 0;
-            const overtimeCupsEl = document.getElementById(`t${t}p${i}o`);
-            const overtimeCups = (hadOvertime && overtimeCupsEl) ? (parseInt(overtimeCupsEl.value) || 0) : 0;
+            const redemptionCups = parseInt(document.getElementById(`t${t}p${i}r`).value) || 0;
+            const overtimeCups = parseInt(document.getElementById(`t${t}p${i}o`).value) || 0;
             const yacks = parseInt(document.getElementById(`t${t}p${i}y`).value) || 0;
             const doubles = parseInt(document.getElementById(`t${t}p${i}d`).value) || 0;
             const tris = parseInt(document.getElementById(`t${t}p${i}t`).value) || 0;
             const quads = parseInt(document.getElementById(`t${t}p${i}q`).value) || 0;
+            const nakedMile = document.getElementById(`t${t}p${i}n`) && 
+                              document.getElementById(`t${t}p${i}n`).checked;
             
-            // Add bonus redemption cup if this player forced OT
-            const bonusRedemptionCup = (hadOvertime && name === redemptionShooter) ? 1 : 0;
-            
-            team.push({
-                name: name,
+            teams[t-1].push({
+                name: getName(t, i),
                 cups: cups,
-                redemptionCups: redemptionCups + bonusRedemptionCup,
+                redemptionCups: redemptionCups,
                 overtimeCups: overtimeCups,
                 yacks: yacks,
                 doubles: doubles,
                 tris: tris,
                 quads: quads,
-                nakedMile: cups === 0 && redemptionCups === 0 && overtimeCups === 0
+                nakedMile: nakedMile || false
             });
+            
+            const playerName = getName(t, i);
+            if (!playerRoster.includes(playerName)) {
+                playerRoster.push(playerName);
+                playerRoster.sort();
+            }
         }
-        game.teams.push(team);
     }
     
-    approvedGames.push(game);
-    alert('Game submitted!');
+    const game = {
+        id: gameIdCounter++,
+        name: gameName, // NEW: Store game name
+        date: new Date().toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+        }),
+        timestamp: new Date().getTime(), // NEW: Add timestamp for better sorting
+        size: size,
+        teams: teams,
+        winningTeam: winner,
+        hadOvertime: hadOvertime,
+        redemptionShooter: redemptionShooter
+    };
     
+    approvedGames.push(game);
+    alert('Game submitted successfully!');
+    
+    // Reset form
     document.getElementById('team-size').value = '';
+    document.getElementById('game-name').value = ''; // Reset game name field
     document.getElementById('winning-team').value = '';
-    document.getElementById('had-overtime').value = 'no';
+    document.getElementById('had-overtime').value = '';
     document.getElementById('teams-container').innerHTML = '';
+    document.getElementById('individual-stats').innerHTML = '';
     document.getElementById('next-btn').style.display = 'none';
-    goToStep1();
+    document.getElementById('submit-btn').style.display = 'none';
+    
     showPage('home');
+    updateAllGamesList();
+    updateHomeStats();
+    updateHighlights('week');
     saveToFirebase();
-
-    console.log('About to send email...');
-    const t1 = game.teams[0].map(p => p.name).join(' & ');
-    const t2 = game.teams[1].map(p => p.name).join(' & ');
-    const winnerTeam = winner === 1 ? t1 : t2;
-
-    emailjs.send('service_r168u8q', 'template_lawx1fc', {
-        to_email: 'abelrupertus06@gmail.com',
-        game_info: `${t1} vs ${t2}`,
-        winner: `Team ${winner} (${winnerTeam})`,
-        date: game.date
-    }).then(
-        function(response) {
-            console.log('Email sent!', response);
-        },
-        function(error) {
-            console.log('Email failed:', error);
-        }
-    );       
 }
 
         function adminLogin() {
@@ -1265,26 +1262,31 @@ game.teams[1].forEach((p, i) => {
         }
 
         function updateAllGamesList() {
-            const c = document.getElementById('all-games-list');
-            const n = document.getElementById('no-games-yet');
-            
-            if (approvedGames.length === 0) {
-                c.innerHTML = '';
-                n.style.display = 'block';
-                return;
-            }
-            
-            n.style.display = 'none';
-            let html = '<table class="table"><thead><tr><th>Date</th><th>Match</th><th>Winner</th></tr></thead><tbody>';
-            [...approvedGames].reverse().forEach(g => {
-                const t1 = g.teams[0].map(p => p.name).join(' & ');
-                const t2 = g.teams[1].map(p => p.name).join(' & ');
-                const w = g.winningTeam === 1 ? t1 : t2;
-                html += `<tr><td>${g.date}</td><td>${t1} vs ${t2}</td><td style="color:#ffff00;">${w}</td></tr>`;
-            });
-            html += '</tbody></table>';
-            c.innerHTML = html;
-        }
+    const c = document.getElementById('all-games-list');
+    const n = document.getElementById('no-games-yet');
+    
+    if (approvedGames.length === 0) {
+        c.innerHTML = '';
+        n.style.display = 'block';
+        return;
+    }
+    
+    n.style.display = 'none';
+    let html = '<table class="table"><thead><tr><th>Date</th><th>Game Name</th><th>Match</th><th>Winner</th></tr></thead><tbody>';
+    [...approvedGames].reverse().forEach(g => {
+        const t1 = g.teams[0].map(p => p.name).join(' & ');
+        const t2 = g.teams[1].map(p => p.name).join(' & ');
+        const w = g.winningTeam === 1 ? t1 : t2;
+        html += `<tr style="cursor:pointer;" onclick="showGameDetails(${g.id})">
+                    <td>${g.date}</td>
+                    <td style="color:#00ff00;font-weight:bold;">${g.name || 'Game'}</td>
+                    <td>${t1} vs ${t2}</td>
+                    <td style="color:#ffff00;">${w}</td>
+                 </tr>`;
+    });
+    html += '</tbody></table>';
+    c.innerHTML = html;
+}
 
         document.getElementById('team-size').addEventListener('change', generateTeams);
 
@@ -1998,7 +2000,44 @@ game.teams[1].forEach((p, i) => {
             
             event.target.value = '';
         }
-
+function showGameDetails(gameId) {
+    const game = approvedGames.find(g => g.id === gameId);
+    if (!game) return;
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:1000;overflow-y:auto;padding:20px;';
+    
+    const t1 = game.teams[0].map(p => p.name).join(' & ');
+    const t2 = game.teams[1].map(p => p.name).join(' & ');
+    const winner = game.winningTeam === 1 ? t1 : t2;
+    
+    let team1Stats = '<h4 style="color:#00ff00;margin-top:20px;">Team 1: ' + t1 + '</h4><table class="table">';
+    team1Stats += '<tr><th>Player</th><th>Cups</th><th>Redemption</th><th>OT</th><th>Yacks</th><th>Naked Mile</th></tr>';
+    game.teams[0].forEach(p => {
+        team1Stats += `<tr><td>${p.name}</td><td>${p.cups}</td><td>${p.redemptionCups||0}</td><td>${p.overtimeCups||0}</td><td>${p.yacks||0}</td><td>${p.nakedMile?'✓':'-'}</td></tr>`;
+    });
+    team1Stats += '</table>';
+    
+    let team2Stats = '<h4 style="color:#00ff00;margin-top:20px;">Team 2: ' + t2 + '</h4><table class="table">';
+    team2Stats += '<tr><th>Player</th><th>Cups</th><th>Redemption</th><th>OT</th><th>Yacks</th><th>Naked Mile</th></tr>';
+    game.teams[1].forEach(p => {
+        team2Stats += `<tr><td>${p.name}</td><td>${p.cups}</td><td>${p.redemptionCups||0}</td><td>${p.overtimeCups||0}</td><td>${p.yacks||0}</td><td>${p.nakedMile?'✓':'-'}</td></tr>`;
+    });
+    team2Stats += '</table>';
+    
+    modal.innerHTML = `
+        <div class="card" style="max-width:900px;margin:0 auto;">
+            <button onclick="this.parentElement.parentElement.remove()" class="btn" style="float:right;">Close</button>
+            <h2 style="color:#00ff00;margin-bottom:20px;">🎮 ${game.name || 'Game'}</h2>
+            <p style="margin-bottom:10px;"><strong>Date:</strong> ${game.date}</p>
+            <p style="margin-bottom:30px;"><strong>Winner:</strong> <span style="color:#ffff00;">${winner}</span></p>
+            ${team1Stats}
+            ${team2Stats}
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
         // Initialize on load
         updateHomeStats();
         updateHighlights('week');
