@@ -953,7 +953,7 @@ window.addEventListener('load', function() {
         function submitGame() {
     const size = parseInt(document.getElementById('team-size').value);
     const winner = parseInt(document.getElementById('winning-team').value);
-    const gameName = document.getElementById('game-name').value.trim() || null; // NEW: Get game name
+    const gameName = document.getElementById('game-name').value.trim() || null;
     const hadOvertime = document.getElementById('had-overtime').value === 'yes';
     const redemptionShooter = hadOvertime ? document.getElementById('redemption-shooter').value : null;
     
@@ -963,13 +963,11 @@ window.addEventListener('load', function() {
         for (let i = 0; i < size; i++) {
             const cups = parseInt(document.getElementById(`t${t}p${i}c`).value) || 0;
             const redemptionCups = parseInt(document.getElementById(`t${t}p${i}r`).value) || 0;
-            const overtimeCups = parseInt(document.getElementById(`t${t}p${i}o`).value) || 0;
+            const overtimeCups = hadOvertime ? (parseInt(document.getElementById(`t${t}p${i}o`).value) || 0) : 0;
             const yacks = parseInt(document.getElementById(`t${t}p${i}y`).value) || 0;
             const doubles = parseInt(document.getElementById(`t${t}p${i}d`).value) || 0;
             const tris = parseInt(document.getElementById(`t${t}p${i}t`).value) || 0;
             const quads = parseInt(document.getElementById(`t${t}p${i}q`).value) || 0;
-            const nakedMile = document.getElementById(`t${t}p${i}n`) && 
-                              document.getElementById(`t${t}p${i}n`).checked;
             
             teams[t-1].push({
                 name: getName(t, i),
@@ -980,7 +978,7 @@ window.addEventListener('load', function() {
                 doubles: doubles,
                 tris: tris,
                 quads: quads,
-                nakedMile: nakedMile || false
+                nakedMile: false
             });
             
             const playerName = getName(t, i);
@@ -993,14 +991,14 @@ window.addEventListener('load', function() {
     
     const game = {
         id: gameIdCounter++,
-        name: gameName, // NEW: Store game name
+        name: gameName,
         date: new Date().toLocaleDateString('en-US', { 
             weekday: 'short', 
             month: 'short', 
             day: 'numeric', 
             year: 'numeric' 
         }),
-        timestamp: new Date().getTime(), // NEW: Add timestamp for better sorting
+        timestamp: new Date().getTime(),
         size: size,
         teams: teams,
         winningTeam: winner,
@@ -1009,23 +1007,26 @@ window.addEventListener('load', function() {
     };
     
     approvedGames.push(game);
+    saveToFirebase(); // Save immediately after adding game
+    
     alert('Game submitted successfully!');
     
     // Reset form
     document.getElementById('team-size').value = '';
-    document.getElementById('game-name').value = ''; // Reset game name field
+    document.getElementById('game-name').value = '';
     document.getElementById('winning-team').value = '';
-    document.getElementById('had-overtime').value = '';
+    document.getElementById('had-overtime').value = 'no';
     document.getElementById('teams-container').innerHTML = '';
     document.getElementById('individual-stats').innerHTML = '';
     document.getElementById('next-btn').style.display = 'none';
-    document.getElementById('submit-btn').style.display = 'none';
+    
+    // Return to step 1 before showing home
+    goToStep1();
     
     showPage('home');
     updateAllGamesList();
     updateHomeStats();
     updateHighlights('week');
-    saveToFirebase();
 }
 
         function adminLogin() {
