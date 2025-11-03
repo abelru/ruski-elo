@@ -793,22 +793,24 @@ window.addEventListener('load', function() {
 
         // Save data to Firebase
         function saveToFirebase() {
-            const data = {
-                approvedGames: approvedGames,
-                playerRoster: playerRoster,
-                gameIdCounter: gameIdCounter,
-                lastSaved: new Date().toISOString()
-            };
-            
-            database.ref('fisherRuskiData').set(data)
-                .then(() => {
-                    console.log('Data saved to Firebase');
-                })
-                .catch((error) => {
-                    console.error('Error saving data:', error);
-                    alert('Error saving data. Check your internet connection.');
-                });
-        }
+    const data = {
+        approvedGames: approvedGames,
+        playerRoster: playerRoster,
+        gameIdCounter: gameIdCounter,
+        lastSaved: new Date().toISOString()
+    };
+    
+    console.log('Attempting to save to Firebase...', data);
+    
+    database.ref('fisherRuskiData').set(data)
+        .then(() => {
+            console.log('✅ Data saved to Firebase successfully!');
+        })
+        .catch((error) => {
+            console.error('❌ Error saving data:', error);
+            alert('Error saving data: ' + error.message);
+        });
+}
 
 
         // Auto-log test game
