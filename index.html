@@ -969,17 +969,19 @@ window.addEventListener('load', function() {
             const tris = parseInt(document.getElementById(`t${t}p${i}t`).value) || 0;
             const quads = parseInt(document.getElementById(`t${t}p${i}q`).value) || 0;
             
-            teams[t-1].push({
-                name: getName(t, i),
-                cups: cups,
-                redemptionCups: redemptionCups,
-                overtimeCups: overtimeCups,
-                yacks: yacks,
-                doubles: doubles,
-                tris: tris,
-                quads: quads,
-                nakedMile: false
-            });
+           const hitNoCups = (cups === 0 && redemptionCups === 0 && overtimeCups === 0);
+    
+    teams[t-1].push({
+        name: getName(t, i),
+        cups: cups,
+        redemptionCups: redemptionCups,
+        overtimeCups: overtimeCups,
+        yacks: yacks,
+        doubles: doubles,
+        tris: tris,
+        quads: quads,
+        nakedMile: hitNoCups
+    });
             
             const playerName = getName(t, i);
             if (!playerRoster.includes(playerName)) {
@@ -1406,8 +1408,11 @@ game.teams[1].forEach((p, i) => {
                 }
             }
             
-            // YACK PENALTY (Keep this harsh to discourage yacking)
-            const yackPenalty = (playerData.yacks || 0) * -25;
+             // YACK PENALTY (Reduced penalty)
+    const yackPenalty = (playerData.yacks || 0) * -15;
+    
+    // NAKED MILE PENALTY - Hit 0 cups = -100 ELO
+    const nakedMilePenalty = totalCupsHit === 0 ? -100 : 0;
             
             // CLUTCH BONUS - Reward game-winning shots
             let clutchBonus = 0;
@@ -1420,9 +1425,10 @@ game.teams[1].forEach((p, i) => {
             
             // CALCULATE TOTAL ELO CHANGE
             let eloChange = (cupPoints * performanceMultiplier) + 
-                          winLossAdjustment + 
-                          clutchBonus + 
-                          yackPenalty;
+                  winLossAdjustment + 
+                  clutchBonus + 
+                  yackPenalty +
+                  nakedMilePenalty;
             
             // MULTI-GAME BONUS (Keep small to not dominate)
             if (gameNumber === 2) {
