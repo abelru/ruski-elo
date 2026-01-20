@@ -22,12 +22,226 @@
             color: #00ff00;
             min-height: 100vh;
             padding-bottom: 80px;
+            transition: background-color 0.5s ease, color 0.5s ease;
+            position: relative;
+        }
+
+        /* Tournament Theme */
+        body.tournament-mode {
+            background: linear-gradient(135deg, #00aa00 0%, #008800 100%);
+            color: #ffffff;
+        }
+
+        body.tournament-mode .header h1,
+        body.tournament-mode h2,
+        body.tournament-mode h3,
+        body.tournament-mode h4 {
+            color: #ffffff !important;
+        }
+
+        body.tournament-mode .card {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid #ffffff;
+            backdrop-filter: blur(10px);
+        }
+
+        body.tournament-mode .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #ffffff;
+        }
+
+        body.tournament-mode .stat-number {
+            color: #ffffff !important;
+        }
+
+        body.tournament-mode .stat-label {
+            color: #dddddd !important;
+        }
+
+        body.tournament-mode .btn {
+            background: #ffffff;
+            color: #008800;
+        }
+
+        body.tournament-mode .btn:hover {
+            background: #f0f0f0;
+        }
+
+        body.tournament-mode .table th,
+        body.tournament-mode .table td {
+            border-bottom: 1px solid #ffffff;
+        }
+
+        body.tournament-mode .table th {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        body.tournament-mode .table tr:hover td {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        body.tournament-mode .bottom-nav {
+            background: rgba(0, 136, 0, 0.95);
+            border-top: 2px solid #ffffff;
+        }
+
+        body.tournament-mode .nav-btn {
+            color: #dddddd;
+        }
+
+        body.tournament-mode .nav-btn.active,
+        body.tournament-mode .nav-btn:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        body.tournament-mode .form-group input,
+        body.tournament-mode .form-group select,
+        body.tournament-mode .form-group textarea {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #ffffff;
+            color: #ffffff;
+        }
+
+        body.tournament-mode .form-group input::placeholder {
+            color: #dddddd;
+        }
+
+        body.tournament-mode .form-group label {
+            color: #ffffff;
+        }
+
+        body.tournament-mode .team {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ffffff;
+        }
+
+        body.tournament-mode .player-stats {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ffffff;
+        }
+
+        /* Falling Brackets Animation */
+        .bracket-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+            display: none;
+        }
+
+        body.tournament-mode .bracket-container {
+            display: block;
+        }
+
+        .bracket {
+            position: absolute;
+            font-size: 40px;
+            color: rgba(255, 255, 255, 0.3);
+            animation: fall linear infinite;
+            font-weight: bold;
+        }
+
+        @keyframes fall {
+            0% {
+                top: -100px;
+                transform: rotate(0deg);
+            }
+            100% {
+                top: 100%;
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Tournament Banner */
+        .tournament-banner {
+            display: none;
+            background: linear-gradient(90deg, #ffaa00, #ff6600, #ffaa00);
+            border: 3px solid #ffffff;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 170, 0, 0.6);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        body.tournament-mode .tournament-banner {
+            display: block;
+        }
+
+        .tournament-banner h2 {
+            font-size: 2.5rem;
+            color: #ffffff;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .tournament-banner p {
+            font-size: 1.3rem;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .tournament-banner .signup-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff200;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            margin-top: 15px;
+        }
+
+        .tournament-banner .btn {
+            background: #ffffff;
+            color: #ff6600;
+            border: 3px solid #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .tournament-banner .btn:hover {
+            background: #ff6600;
+            color: #ffffff;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 30px rgba(255, 170, 0, 0.6);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 50px rgba(255, 170, 0, 0.9);
+            }
+        }
+
+        .tournament-trophy {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            position: relative;
+            z-index: 2;
         }
 
         .header {
@@ -35,6 +249,10 @@
             padding: 40px 0;
             border-bottom: 2px solid #00ff00;
             margin-bottom: 30px;
+        }
+
+        body.tournament-mode .header {
+            border-bottom: 2px solid #ffffff;
         }
 
         .header h1 {
@@ -120,6 +338,10 @@
             color: #00ff00;
             text-align: center;
             margin-bottom: 15px;
+        }
+
+        body.tournament-mode .team h3 {
+            color: #ffffff;
         }
 
         .player-stats {
@@ -239,10 +461,25 @@
             .stats-grid-form {
                 grid-template-columns: 1fr;
             }
+
+            .tournament-banner h2 {
+                font-size: 1.8rem;
+            }
+
+            .tournament-banner p {
+                font-size: 1rem;
+            }
+
+            .tournament-banner .signup-text {
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Falling Brackets Animation Container -->
+    <div class="bracket-container" id="bracket-container"></div>
+
     <div class="container">
         <div class="header">
             <div style="font-size: 4rem; margin-bottom: 10px;">🍺</div>
@@ -251,6 +488,17 @@
         </div>
 
         <div id="home" class="page active">
+            <!-- Tournament Banner -->
+            <div class="tournament-banner">
+                <div class="tournament-trophy">🏆</div>
+                <h2>WELCOME TO THE 25TH ANNUAL RUSKI TOURNAMENT!</h2>
+                <p>The Ultimate Battle for Beer Pong Glory</p>
+                <div class="signup-text">📝 SIGN UP THIS WEEK! 📝</div>
+                <a href="https://forms.gle/NxPr1EjSLEgggZzS7" target="_blank" class="btn" style="display:inline-block;margin-top:20px;padding:15px 40px;font-size:1.2rem;text-decoration:none;">
+                    🎯 SIGN UP NOW 🎯
+                </a>
+            </div>
+
             <div class="card">
                 <h2>Welcome to the Game of Games</h2>
                 <div class="stats-grid">
@@ -682,6 +930,17 @@
             </div>
             <div id="admin-panel" style="display:none;">
                 <div class="card">
+                    <h2>Site Settings</h2>
+                    <div class="form-group">
+                        <label style="display:flex;align-items:center;gap:10px;">
+                            <input type="checkbox" id="tournament-mode-toggle" onchange="toggleTournamentMode()" style="width:auto;">
+                            <span>Tournament Mode</span>
+                        </label>
+                        <p style="color:#888;font-size:0.9rem;margin-top:5px;">Activates green background, white text, falling brackets animation, and tournament banner</p>
+                    </div>
+                </div>
+
+                <div class="card">
                     <h2>All Games</h2>
                     <button class="btn" onclick="adminLogout()" style="background:#ff0000;float:right;">Logout</button>
                     <div style="clear:both;"></div>
@@ -745,6 +1004,7 @@
         let approvedGames = [];
         let playerRoster = [];
         let gameIdCounter = 1;
+        let tournamentMode = false;
 
         // Firebase Configuration - PASTE YOUR CONFIG HERE
         const firebaseConfig = {
@@ -759,16 +1019,15 @@
 
         
         // Initialize Firebase
-        // Initialize Firebase - wait for scripts to load
-let database;
+        let database;
         
-emailjs.init('pyEFhKTszWQu0O5ZC'); 
+        emailjs.init('pyEFhKTszWQu0O5ZC'); 
         
-window.addEventListener('load', function() {
-    firebase.initializeApp(firebaseConfig);
-    database = firebase.database();
-    loadFromFirebase();
-});
+        window.addEventListener('load', function() {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            loadFromFirebase();
+        });
 
         // Load data from Firebase
         function loadFromFirebase() {
@@ -778,6 +1037,14 @@ window.addEventListener('load', function() {
                     approvedGames = data.approvedGames || [];
                     playerRoster = data.playerRoster || [];
                     gameIdCounter = data.gameIdCounter || 1;
+                    tournamentMode = data.tournamentMode || false;
+                    
+                    // Apply tournament mode
+                    if (tournamentMode) {
+                        document.body.classList.add('tournament-mode');
+                        document.getElementById('tournament-mode-toggle').checked = true;
+                        createFallingBrackets();
+                    }
                     
                     // Update all displays
                     updateAllGamesList();
@@ -793,27 +1060,65 @@ window.addEventListener('load', function() {
 
         // Save data to Firebase
         function saveToFirebase() {
-    const data = {
-        approvedGames: approvedGames,
-        playerRoster: playerRoster,
-        gameIdCounter: gameIdCounter,
-        lastSaved: new Date().toISOString()
-    };
-    
-    console.log('Attempting to save to Firebase...', data);
-    
-    database.ref('fisherRuskiData').set(data)
-        .then(() => {
-            console.log('✅ Data saved to Firebase successfully!');
-        })
-        .catch((error) => {
-            console.error('❌ Error saving data:', error);
-            alert('Error saving data: ' + error.message);
-        });
-}
+            const data = {
+                approvedGames: approvedGames,
+                playerRoster: playerRoster,
+                gameIdCounter: gameIdCounter,
+                tournamentMode: tournamentMode,
+                lastSaved: new Date().toISOString()
+            };
+            
+            console.log('Attempting to save to Firebase...', data);
+            
+            database.ref('fisherRuskiData').set(data)
+                .then(() => {
+                    console.log('✅ Data saved to Firebase successfully!');
+                })
+                .catch((error) => {
+                    console.error('❌ Error saving data:', error);
+                    alert('Error saving data: ' + error.message);
+                });
+        }
 
+        // Tournament Mode Toggle
+        function toggleTournamentMode() {
+            tournamentMode = document.getElementById('tournament-mode-toggle').checked;
+            
+            if (tournamentMode) {
+                document.body.classList.add('tournament-mode');
+                createFallingBrackets();
+            } else {
+                document.body.classList.remove('tournament-mode');
+                clearFallingBrackets();
+            }
+            
+            saveToFirebase();
+        }
 
-        // Auto-log test game
+        // Create Falling Brackets Animation
+        function createFallingBrackets() {
+            const container = document.getElementById('bracket-container');
+            container.innerHTML = ''; // Clear existing
+            
+            const items = ['🏓', '⚪', '⚾', '🥎', '{ }', '[ ]', '( )', '🏓', '⚪', '🏓'];
+            
+            // Create 25 falling items (ping pong balls and brackets)
+            for (let i = 0; i < 25; i++) {
+                const bracket = document.createElement('div');
+                bracket.className = 'bracket';
+                bracket.textContent = items[Math.floor(Math.random() * items.length)];
+                bracket.style.left = Math.random() * 100 + '%';
+                bracket.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                bracket.style.animationDelay = Math.random() * 5 + 's';
+                bracket.style.fontSize = (Math.random() * 20 + 30) + 'px';
+                container.appendChild(bracket);
+            }
+        }
+
+        function clearFallingBrackets() {
+            document.getElementById('bracket-container').innerHTML = '';
+        }
+
         
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -896,7 +1201,6 @@ window.addEventListener('load', function() {
     const container = document.getElementById('individual-stats');
     let html = '';
     
-    // If overtime, ask who hit the redemption cup that forced OT
     if (hadOvertime) {
         html += `<div style="background:#1a1a00;border:2px solid #ffff00;padding:20px;border-radius:8px;margin-bottom:20px;">
             <h3 style="color:#ffff00;margin-bottom:15px;">Who hit the Redemption Cup that forced Overtime?</h3>
@@ -938,12 +1242,6 @@ window.addEventListener('load', function() {
     document.getElementById('step1').style.display = 'none';
     document.getElementById('step2').style.display = 'block';
 }
-        const gameNameFieldHTML = `
-<div class="form-group">
-    <label>Game Name (Optional)</label>
-    <input type="text" id="game-name" placeholder="e.g., Championship Finals, Saturday Night Showdown, etc.">
-</div>
-`;
 
         function goToStep1() {
             document.getElementById('step1').style.display = 'block';
@@ -1009,7 +1307,7 @@ window.addEventListener('load', function() {
     };
     
     approvedGames.push(game);
-    saveToFirebase(); // Save immediately after adding game
+    saveToFirebase();
     
     alert('Game submitted successfully!');
     
@@ -1022,7 +1320,6 @@ window.addEventListener('load', function() {
     document.getElementById('individual-stats').innerHTML = '';
     document.getElementById('next-btn').style.display = 'none';
     
-    // Return to step 1 before showing home
     goToStep1();
     
     showPage('home');
@@ -1035,6 +1332,7 @@ window.addEventListener('load', function() {
             if (document.getElementById('admin-password').value === 'bbsucks') {
                 document.getElementById('admin-login').style.display = 'none';
                 document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('tournament-mode-toggle').checked = tournamentMode;
                 updateApprovedGamesDisplay();
                 updatePlayerRoster();
             } else {
@@ -1352,11 +1650,9 @@ game.teams[1].forEach((p, i) => {
             const isWinner = playerTeam === game.winningTeam;
             const teamSize = game.size;
             
-            // Calculate total cups available (10 cups per player on opposing team)
             const opponentTeam = game.teams[playerTeam === 1 ? 1 : 0];
             let totalCupsAvailable = opponentTeam.length * 10;
             
-            // Subtract cups removed by tris/quads/doubles
             opponentTeam.forEach(p => {
                 const doubles = p.doubles || 0;
                 const tris = p.tris || 0;
@@ -1366,89 +1662,53 @@ game.teams[1].forEach((p, i) => {
             
             totalCupsAvailable = Math.max(1, totalCupsAvailable);
             
-            // Calculate cups hit (including all types)
             const regularCups = playerData.cups || 0;
             const redemptionCups = playerData.redemptionCups || 0;
             const overtimeCups = playerData.overtimeCups || 0;
             const totalCupsHit = regularCups + redemptionCups + overtimeCups;
             
-            // NEW CUP-CENTRIC FORMULA
-            // ======================
-            
-            // BASE CUP PERFORMANCE (This is now the PRIMARY factor)
-            // Each cup is worth a base amount, with bonuses for special cups
             const cupPoints = (regularCups * 10) + 
-                            (redemptionCups * 20) +  // Redemption cups worth double
-                            (overtimeCups * 15);      // Overtime cups worth 1.5x
+                            (redemptionCups * 20) +
+                            (overtimeCups * 15);
             
-            // FAIR SHARE ADJUSTMENT
-            // "Fair share" is 5 cups for 2v2 (10 total cups / 2 players)
-            // Adjust based on team size
             const fairShareCups = 10 / teamSize;
             const cupsAboveFairShare = totalCupsHit - fairShareCups;
             
-            // Performance multiplier based on how much above/below fair share
-            // If you hit exactly fair share (5 cups in 2v2), multiplier is 1.0
-            // Each cup above fair share adds bonus, each below subtracts
             const performanceMultiplier = 1 + (cupsAboveFairShare * 0.15);
             
-            // WIN/LOSS BONUS (Much smaller now - winning is just a small bonus)
             let winLossAdjustment = 0;
             if (isWinner) {
-                // Winners get a small flat bonus that decreases with team size
                 winLossAdjustment = 20 / teamSize;
             } else {
-                // Losers only get penalized if below fair share
                 if (totalCupsHit < fairShareCups) {
-                    // Penalty scales with how far below fair share you are
-                    winLossAdjustment = cupsAboveFairShare * 15; // This will be negative
+                    winLossAdjustment = cupsAboveFairShare * 15;
                 } else {
-                    // Hit your fair share or more? No penalty for losing!
                     winLossAdjustment = 0;
                 }
             }
             
-             // YACK PENALTY (Reduced penalty)
-    const yackPenalty = (playerData.yacks || 0) * -15;
-    
-    // NAKED MILE PENALTY - Hit 0 cups = -100 ELO
-    const nakedMilePenalty = totalCupsHit === 0 ? -100 : 0;
+            const yackPenalty = (playerData.yacks || 0) * -15;
+            const nakedMilePenalty = totalCupsHit === 0 ? -100 : 0;
             
-            // CLUTCH BONUS - Reward game-winning shots
             let clutchBonus = 0;
             if (isWinner && redemptionCups > 0) {
-                clutchBonus = 15; // Bonus for hitting redemption cups in a win
+                clutchBonus = 15;
             }
             if (isWinner && overtimeCups > 0) {
-                clutchBonus += 10; // Additional bonus for overtime cups
+                clutchBonus += 10;
             }
             
-            // CALCULATE TOTAL ELO CHANGE
             let eloChange = (cupPoints * performanceMultiplier) + 
                   winLossAdjustment + 
                   clutchBonus + 
                   yackPenalty +
                   nakedMilePenalty;
             
-            // MULTI-GAME BONUS (Keep small to not dominate)
             if (gameNumber === 2) {
                 eloChange *= 1.05;
             } else if (gameNumber >= 3) {
                 eloChange *= 1.10;
             }
-            
-            // Debug logging (optional - remove in production)
-            /*
-            console.log(`${playerName} - Game ${gameNumber}:
-                Cups: ${totalCupsHit} (Fair share: ${fairShareCups})
-                Cup Points: ${cupPoints}
-                Performance Multiplier: ${performanceMultiplier.toFixed(2)}
-                Win/Loss: ${winLossAdjustment.toFixed(1)}
-                Clutch: ${clutchBonus}
-                Yacks: ${yackPenalty}
-                Total Change: ${eloChange.toFixed(1)}
-            `);
-            */
             
             elo += eloChange;
         }
@@ -1456,49 +1716,6 @@ game.teams[1].forEach((p, i) => {
     
     return Math.round(elo);
 }
-
-// EXAMPLE SCENARIOS WITH NEW FORMULA:
-// ====================================
-
-// Scenario 1: Win but only hit 1 cup (2v2)
-// Cup Points: 1 * 10 = 10
-// Fair share: 5, so -4 cups below
-// Performance Multiplier: 1 + (-4 * 0.15) = 0.4
-// Cup contribution: 10 * 0.4 = 4
-// Win bonus: 20/2 = 10
-// Total: ~14 points (very small gain for winning with poor performance)
-
-// Scenario 2: Lose but hit 9 cups (2v2)
-// Cup Points: 9 * 10 = 90
-// Fair share: 5, so +4 cups above
-// Performance Multiplier: 1 + (4 * 0.15) = 1.6
-// Cup contribution: 90 * 1.6 = 144
-// Loss penalty: 0 (hit more than fair share!)
-// Total: ~144 points (big gain despite losing!)
-
-// Scenario 3: Lose and hit exactly 5 cups (2v2)
-// Cup Points: 5 * 10 = 50
-// Fair share: 5, so exactly on target
-// Performance Multiplier: 1.0
-// Cup contribution: 50 * 1.0 = 50
-// Loss penalty: 0 (hit fair share)
-// Total: 50 points (no penalty for losing if you did your part!)
-
-// Scenario 4: Win and hit 8 cups (2v2)
-// Cup Points: 8 * 10 = 80
-// Fair share: 5, so +3 cups above
-// Performance Multiplier: 1 + (3 * 0.15) = 1.45
-// Cup contribution: 80 * 1.45 = 116
-// Win bonus: 20/2 = 10
-// Total: ~126 points (good reward for strong performance)
-
-// Scenario 5: Lose and hit only 2 cups (2v2)
-// Cup Points: 2 * 10 = 20
-// Fair share: 5, so -3 cups below
-// Performance Multiplier: 1 + (-3 * 0.15) = 0.55
-// Cup contribution: 20 * 0.55 = 11
-// Loss penalty: -3 * 15 = -45
-// Total: ~-34 points (penalty for poor performance)
 
         function getPlayerStats(playerName) {
             let games = 0;
@@ -1576,7 +1793,6 @@ game.teams[1].forEach((p, i) => {
     });
     
     if (filteredGames.length === 0) {
-        // Reset all to "No data"
         ['highest-elo-player', 'most-cups-player', 'best-record-player', 'best-gain-player',
          'worst-player', 'most-yacks-player', 'least-cups-player', 'worst-loss-player',
          'best-game', 'most-yacks-game'].forEach(id => {
@@ -1590,7 +1806,6 @@ game.teams[1].forEach((p, i) => {
         return;
     }
     
-    // Calculate comprehensive player stats
     const playerStats = {};
     const playerELOChanges = {};
     
@@ -1619,8 +1834,6 @@ game.teams[1].forEach((p, i) => {
                     stats.losses++;
                 }
                 
-                // Calculate ELO change for this specific game
-                // (simplified calculation - you could make this more accurate)
                 const isWinner = (teamIndex + 1) === game.winningTeam;
                 const teamSize = game.size;
                 const cupsHit = player.cups + (player.redemptionCups || 0) + (player.overtimeCups || 0);
@@ -1637,7 +1850,6 @@ game.teams[1].forEach((p, i) => {
         });
     });
     
-    // 1. ADMIRAL - Highest current ELO
     let highestELOPlayer = null;
     let highestELO = 0;
     Object.keys(playerStats).forEach(name => {
@@ -1653,7 +1865,6 @@ game.teams[1].forEach((p, i) => {
         document.getElementById('highest-elo-stat').textContent = `${highestELO} ELO`;
     }
     
-    // 2. SHARPSHOOTER - Most cups hit
     let mostCupsPlayer = null;
     let mostCups = 0;
     Object.entries(playerStats).forEach(([name, stats]) => {
@@ -1668,7 +1879,6 @@ game.teams[1].forEach((p, i) => {
         document.getElementById('most-cups-stat').textContent = `${mostCups} cups`;
     }
     
-    // 3. CHAMPION - Best win rate (min 2 games)
     let bestRecordPlayer = null;
     let bestWinRate = -1;
     Object.entries(playerStats).forEach(([name, stats]) => {
@@ -1687,7 +1897,6 @@ game.teams[1].forEach((p, i) => {
             `${bestRecordPlayer.wins}-${bestRecordPlayer.losses} (${Math.round(bestWinRate * 100)}%)`;
     }
     
-    // 4. RISING TIDE - Biggest single ELO gain
     let bestGainPlayer = null;
     let bestGain = 0;
     Object.entries(playerStats).forEach(([name, stats]) => {
@@ -1703,7 +1912,6 @@ game.teams[1].forEach((p, i) => {
         document.getElementById('best-gain-stat').textContent = `+${Math.round(bestGain)} in one game`;
     }
     
-    // 5. OVERBOARD - Worst win rate (min 2 games)
     let worstPlayer = null;
     let worstWinRate = 2;
     Object.entries(playerStats).forEach(([name, stats]) => {
@@ -1722,7 +1930,6 @@ game.teams[1].forEach((p, i) => {
             `${worstPlayer.wins}-${worstPlayer.losses} (${Math.round(worstWinRate * 100)}%)`;
     }
     
-    // 6. LANDLUBBER - Most yacks
     let mostYacksPlayer = null;
     let mostYacks = 0;
     Object.entries(playerStats).forEach(([name, stats]) => {
@@ -1737,7 +1944,6 @@ game.teams[1].forEach((p, i) => {
         document.getElementById('most-yacks-stat').textContent = `${mostYacks} yacks`;
     }
     
-    // 7. SCALLYWAG - Fewest cups (min 2 games)
     let leastCupsPlayer = null;
     let leastCups = Infinity;
     Object.entries(playerStats).forEach(([name, stats]) => {
@@ -1752,7 +1958,6 @@ game.teams[1].forEach((p, i) => {
         document.getElementById('least-cups-stat').textContent = `${leastCups} cups`;
     }
     
-    // 8. ANCHOR - Biggest single ELO loss
     let worstLossPlayer = null;
     let worstLoss = 0;
     Object.entries(playerStats).forEach(([name, stats]) => {
@@ -1768,7 +1973,6 @@ game.teams[1].forEach((p, i) => {
         document.getElementById('worst-loss-stat').textContent = `${Math.round(worstLoss)} in one game`;
     }
     
-    // 9. BATTLE OF THE AGES - Closest game (smallest cup differential)
     let bestGame = null;
     let smallestDiff = Infinity;
     filteredGames.forEach(game => {
@@ -1791,7 +1995,6 @@ game.teams[1].forEach((p, i) => {
         document.getElementById('best-game-stat').textContent = `${t1Cups}-${t2Cups} (diff: ${smallestDiff})`;
     }
     
-    // 10. MOST BRUTAL - Game with most yacks
     let mostYacksGame = null;
     let maxYacks = 0;
     filteredGames.forEach(game => {
@@ -1966,6 +2169,7 @@ game.teams[1].forEach((p, i) => {
                 approvedGames: approvedGames,
                 playerRoster: playerRoster,
                 gameIdCounter: gameIdCounter,
+                tournamentMode: tournamentMode,
                 exportDate: new Date().toISOString()
             };
             
@@ -1993,6 +2197,17 @@ game.teams[1].forEach((p, i) => {
                         approvedGames = data.approvedGames || [];
                         playerRoster = data.playerRoster || [];
                         gameIdCounter = data.gameIdCounter || 1;
+                        tournamentMode = data.tournamentMode || false;
+                        
+                        if (tournamentMode) {
+                            document.body.classList.add('tournament-mode');
+                            document.getElementById('tournament-mode-toggle').checked = true;
+                            createFallingBrackets();
+                        } else {
+                            document.body.classList.remove('tournament-mode');
+                            document.getElementById('tournament-mode-toggle').checked = false;
+                            clearFallingBrackets();
+                        }
                         
                         alert('Data imported successfully!');
                         updateApprovedGamesDisplay();
@@ -2009,6 +2224,7 @@ game.teams[1].forEach((p, i) => {
             
             event.target.value = '';
         }
+        
 function showGameDetails(gameId) {
     const game = approvedGames.find(g => g.id === gameId);
     if (!game) return;
@@ -2047,6 +2263,7 @@ function showGameDetails(gameId) {
     
     document.body.appendChild(modal);
 }
+        
         // Initialize on load
         updateHomeStats();
         updateHighlights('week');
