@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>Fisher Ruski Tracker</title>
      <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -16,14 +20,20 @@
             box-sizing: border-box;
         }
 
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background: #000;
             color: #00ff00;
             min-height: 100vh;
-            padding-bottom: 80px;
+            padding-bottom: calc(85px + env(safe-area-inset-bottom));
             transition: background-color 0.5s ease, color 0.5s ease;
             position: relative;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: rgba(0, 255, 0, 0.2);
         }
 
         /* Tournament Theme */
@@ -119,6 +129,12 @@
         body.tournament-mode .player-stats {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid #ffffff;
+        }
+
+        body.tournament-mode #season-selector {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #ffffff;
+            color: #ffffff;
         }
 
         /* Falling Brackets Animation */
@@ -416,6 +432,44 @@
             background: #0a0a0a;
         }
 
+        /* Horizontal scroll wrapper for wide tables on small screens */
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Seasons page header row */
+        .season-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .season-header h2 {
+            margin-bottom: 0;
+        }
+
+        #season-selector {
+            padding: 10px;
+            background: #222;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            color: #00ff00;
+            font-size: 15px;
+            font-weight: bold;
+            min-width: 200px;
+        }
+
+        .period-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -426,6 +480,7 @@
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
             z-index: 100;
         }
 
@@ -433,6 +488,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             color: #888;
             background: none;
             border: none;
@@ -440,6 +496,8 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 12px;
+            flex: 1 1 0;
+            min-width: 0;
         }
 
         .nav-btn.active,
@@ -453,17 +511,112 @@
             margin-bottom: 2px;
         }
 
+        /* ---------- MOBILE ---------- */
         @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 22px 0;
+                margin-bottom: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+
+            .card h2 {
+                font-size: 1.35rem;
+                margin-bottom: 15px;
+            }
+
             .teams-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
-            
+
             .stats-grid-form {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            /* Two-up stat tiles read better than one giant column */
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+                gap: 12px;
+            }
+
+            .stat-box {
+                padding: 14px 10px;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+
+            /* 16px stops iOS from zooming the page on focus */
+            .form-group input,
+            .form-group select,
+            .form-group textarea,
+            #season-selector {
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            .btn {
+                padding: 13px 18px;
+                font-size: 15px;
+            }
+
+            .table {
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+            .table th,
+            .table td {
+                padding: 9px 8px;
+            }
+
+            .period-btns {
+                width: 100%;
+            }
+
+            .period-btns .btn {
+                flex: 1 1 auto;
+            }
+
+            #season-selector {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .nav-btn {
+                padding: 6px 2px;
+                font-size: 10px;
+            }
+
+            .nav-icon {
+                font-size: 1.15rem;
+            }
+
+            .tournament-banner {
+                padding: 22px 16px;
+                margin-bottom: 20px;
             }
 
             .tournament-banner h2 {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
             }
 
             .tournament-banner p {
@@ -472,6 +625,53 @@
 
             .tournament-banner .signup-text {
                 font-size: 1.2rem;
+            }
+
+            .tournament-trophy {
+                font-size: 3rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 18px 0;
+            }
+
+            .header h1 {
+                font-size: 1.6rem;
+            }
+
+            .card {
+                padding: 14px;
+            }
+
+            .card h2 {
+                font-size: 1.2rem;
+            }
+
+            .stats-grid-form {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-number {
+                font-size: 1.35rem;
+            }
+
+            .nav-btn {
+                font-size: 9px;
+                padding: 6px 1px;
+            }
+
+            .nav-icon {
+                font-size: 1.05rem;
+            }
+
+            .tournament-banner h2 {
+                font-size: 1.3rem;
+            }
+
+            .tournament-trophy {
+                font-size: 2.4rem;
             }
         }
     </style>
@@ -518,9 +718,9 @@
             </div>
 
             <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <h2>⚓ Nautical Leaderboards ⚓</h2>
-        <div style="display:flex;gap:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+        <h2 style="margin-bottom:0;">⚓ Nautical Leaderboards ⚓</h2>
+        <div class="period-btns">
             <button class="btn" onclick="setPeriod('week')" id="btn-week" style="padding:8px 15px;">Week</button>
             <button class="btn" onclick="setPeriod('month')" id="btn-month" style="padding:8px 15px;background:#666;">Month</button>
             <button class="btn" onclick="setPeriod('year')" id="btn-year" style="padding:8px 15px;background:#666;">Year</button>
@@ -674,6 +874,7 @@
         <div id="rankings" class="page">
             <div class="card">
                 <h2>ELO Rankings</h2>
+                <div class="table-wrap">
                 <table class="table">
                     <thead>
                         <tr>
@@ -690,6 +891,52 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ SEASONS PAGE ============ -->
+        <div id="seasons" class="page">
+            <div class="card">
+                <div class="season-header">
+                    <h2>📅 Season Stats</h2>
+                    <select id="season-selector" onchange="updateSeasons()"></select>
+                </div>
+                <p id="season-range" style="color:#888;font-size:0.9rem;margin-bottom:15px;"></p>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-number" id="season-games-count">0</span>
+                        <div class="stat-label">Games</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="season-players-count">0</span>
+                        <div class="stat-label">Players</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="season-cups-count">0</span>
+                        <div class="stat-label">Total Cups</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-number" id="season-yacks-count">0</span>
+                        <div class="stat-label">Total Yacks</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🏅 Season Awards</h2>
+                <div class="stats-grid" id="season-awards"></div>
+            </div>
+
+            <div class="card">
+                <h2>Season Standings</h2>
+                <p style="color:#888;font-size:0.85rem;margin-bottom:10px;">Season ELO resets to 1000 each July 1st.</p>
+                <div id="season-standings"></div>
+            </div>
+
+            <div class="card">
+                <h2>Season Games</h2>
+                <div id="season-games"></div>
             </div>
         </div>
 
@@ -826,6 +1073,13 @@
                     <li><strong>No elbow-over-table shooting, no shooting on song change</strong></li>
                 </ul>
 
+                <h3 style="color:#00ff00;margin-top:30px;border-top:2px solid #00ff00;padding-top:20px;">Seasons</h3>
+                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
+                    <li>A season runs <strong>July 1 through June 30</strong>.</li>
+                    <li>Season ELO starts fresh at 1000 for every player on July 1.</li>
+                    <li>All-time ELO on the Rankings page is never reset.</li>
+                </ul>
+
                 <h3 style="color:#00ff00;margin-top:30px;border-top:2px solid #00ff00;padding-top:20px;">ELO Rating System</h3>
                 <p style="color:#ccc;line-height:1.8;margin-bottom:15px;">Fisher Ruski uses a comprehensive ELO system that rewards individual performance, teamwork, and consistency.</p>
                 
@@ -951,8 +1205,8 @@
                     <h2>Player Roster</h2>
                     <div class="form-group">
                         <label>Add New Player</label>
-                        <div style="display:flex;gap:10px;">
-                            <input type="text" id="new-player-name" placeholder="Enter player name">
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <input type="text" id="new-player-name" placeholder="Enter player name" style="flex:1 1 160px;">
                             <button class="btn" onclick="addNewPlayer()">Add Player</button>
                         </div>
                     </div>
@@ -960,7 +1214,7 @@
                 </div>
                 <div class="card">
                     <h2>Data Management</h2>
-                    <div style="display:flex;gap:10px;margin-bottom:15px;">
+                    <div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;">
                         <button class="btn" onclick="exportData()">Export JSON Backup</button>
                         <label class="btn" style="background:#666;display:inline-block;cursor:pointer;">
                             Import JSON Backup
@@ -985,6 +1239,10 @@
         <button class="nav-btn" onclick="showPage('rankings')">
             <div class="nav-icon">🏆</div>
             <div>Rankings</div>
+        </button>
+        <button class="nav-btn" onclick="showPage('seasons')">
+            <div class="nav-icon">📅</div>
+            <div>Seasons</div>
         </button>
         <button class="nav-btn" onclick="showPage('players')">
             <div class="nav-icon">👤</div>
@@ -1052,6 +1310,10 @@
                     updateHighlights('week');
                     updatePlayersList();
                     updateRankings();
+                    initSeasonSelector();
+                    if (document.getElementById('seasons').classList.contains('active')) {
+                        updateSeasons();
+                    }
                     
                     console.log('Data loaded from Firebase');
                 }
@@ -1132,6 +1394,8 @@
                 }
             });
             
+            window.scrollTo(0, 0);
+            
             if (pageId === 'admin') updateApprovedGamesDisplay();
             if (pageId === 'home') {
                 updateAllGamesList();
@@ -1140,6 +1404,10 @@
             }
             if (pageId === 'players') updatePlayersList();
             if (pageId === 'rankings') updateRankings();
+            if (pageId === 'seasons') {
+                initSeasonSelector();
+                updateSeasons();
+            }
         }
 
         function generateTeams() {
@@ -1162,7 +1430,7 @@
                         ${playerRoster.map(p => `<option value="${p}">${p}</option>`).join('')}
                         <option value="__OTHER__">+ New Player</option>
                     </select>
-                    <input type="text" id="t${team}p${i}o" placeholder="Name" style="display:none;margin-top:5px;width:100%;padding:10px;background:#222;border:1px solid #00ff00;color:#00ff00;border-radius:5px;"></div>`;
+                    <input type="text" id="t${team}p${i}o" placeholder="Name" style="display:none;margin-top:5px;width:100%;padding:12px;background:#222;border:1px solid #00ff00;color:#00ff00;border-radius:5px;font-size:16px;"></div>`;
                 }
                 html += '</div>';
             }
@@ -1224,23 +1492,24 @@
         for (let i = 0; i < size; i++) {
             const name = getName(t, i);
             html += `<div class="player-stats"><h4>${name}</h4><div class="stats-grid-form">
-                <div class="form-group"><label>Regular Cups</label><input type="number" id="t${t}p${i}c" min="0" value="0"></div>
-                <div class="form-group"><label>Redemption Cups</label><input type="number" id="t${t}p${i}r" min="0" value="0"></div>`;
+                <div class="form-group"><label>Regular Cups</label><input type="number" inputmode="numeric" id="t${t}p${i}c" min="0" value="0"></div>
+                <div class="form-group"><label>Redemption Cups</label><input type="number" inputmode="numeric" id="t${t}p${i}r" min="0" value="0"></div>`;
             
             if (hadOvertime) {
-                html += `<div class="form-group"><label>Overtime Cups</label><input type="number" id="t${t}p${i}o" min="0" value="0"></div>`;
+                html += `<div class="form-group"><label>Overtime Cups</label><input type="number" inputmode="numeric" id="t${t}p${i}o" min="0" value="0"></div>`;
             }
             
-            html += `<div class="form-group"><label>Yacks</label><input type="number" id="t${t}p${i}y" min="0" value="0"></div>
-                <div class="form-group"><label>Doubles</label><input type="number" id="t${t}p${i}d" min="0" value="0"></div>
-                <div class="form-group"><label>Tris</label><input type="number" id="t${t}p${i}t" min="0" value="0"></div>
-                <div class="form-group"><label>Quads</label><input type="number" id="t${t}p${i}q" min="0" value="0"></div>
+            html += `<div class="form-group"><label>Yacks</label><input type="number" inputmode="numeric" id="t${t}p${i}y" min="0" value="0"></div>
+                <div class="form-group"><label>Doubles</label><input type="number" inputmode="numeric" id="t${t}p${i}d" min="0" value="0"></div>
+                <div class="form-group"><label>Tris</label><input type="number" inputmode="numeric" id="t${t}p${i}t" min="0" value="0"></div>
+                <div class="form-group"><label>Quads</label><input type="number" inputmode="numeric" id="t${t}p${i}q" min="0" value="0"></div>
             </div></div>`;
         }
     }
     container.innerHTML = html;
     document.getElementById('step1').style.display = 'none';
     document.getElementById('step2').style.display = 'block';
+    window.scrollTo(0, 0);
 }
 
         function goToStep1() {
@@ -1356,7 +1625,7 @@
             }
             
             n.style.display = 'none';
-            let html = '<table class="table"><thead><tr><th>ID</th><th>Date</th><th>Match</th><th>Winner</th><th>Actions</th></tr></thead><tbody>';
+            let html = '<div class="table-wrap"><table class="table"><thead><tr><th>ID</th><th>Date</th><th>Match</th><th>Winner</th><th>Actions</th></tr></thead><tbody>';
             approvedGames.forEach((g, i) => {
                 const t1 = g.teams[0].map(p => p.name).join(' & ');
                 const t2 = g.teams[1].map(p => p.name).join(' & ');
@@ -1372,7 +1641,7 @@
                     </td>
                 </tr>`;
             });
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
             c.innerHTML = html;
         }
 
@@ -1404,31 +1673,31 @@
         </div>
         <div class="form-group">
             <label>Regular Cups</label>
-            <input type="number" id="edit-t1c${i}" value="${p.cups}" min="0">
+            <input type="number" inputmode="numeric" id="edit-t1c${i}" value="${p.cups}" min="0">
         </div>
         <div class="form-group">
             <label>Redemption Cups</label>
-            <input type="number" id="edit-t1r${i}" value="${p.redemptionCups || 0}" min="0">
+            <input type="number" inputmode="numeric" id="edit-t1r${i}" value="${p.redemptionCups || 0}" min="0">
         </div>
         <div class="form-group">
             <label>Overtime Cups</label>
-            <input type="number" id="edit-t1o${i}" value="${p.overtimeCups || 0}" min="0">
+            <input type="number" inputmode="numeric" id="edit-t1o${i}" value="${p.overtimeCups || 0}" min="0">
         </div>
         <div class="form-group">
             <label>Yacks</label>
-            <input type="number" id="edit-t1y${i}" value="${p.yacks}" min="0">
+            <input type="number" inputmode="numeric" id="edit-t1y${i}" value="${p.yacks}" min="0">
         </div>
         <div class="form-group">
             <label>Doubles</label>
-            <input type="number" id="edit-t1d${i}" value="${p.doubles || 0}" min="0">
+            <input type="number" inputmode="numeric" id="edit-t1d${i}" value="${p.doubles || 0}" min="0">
         </div>
         <div class="form-group">
             <label>Tris</label>
-            <input type="number" id="edit-t1t${i}" value="${p.tris || 0}" min="0">
+            <input type="number" inputmode="numeric" id="edit-t1t${i}" value="${p.tris || 0}" min="0">
         </div>
         <div class="form-group">
             <label>Quads</label>
-            <input type="number" id="edit-t1q${i}" value="${p.quads || 0}" min="0">
+            <input type="number" inputmode="numeric" id="edit-t1q${i}" value="${p.quads || 0}" min="0">
         </div>
     </div>`;
             });
@@ -1446,31 +1715,31 @@ game.teams[1].forEach((p, i) => {
             </div>
             <div class="form-group">
                 <label>Regular Cups</label>
-                <input type="number" id="edit-t2c${i}" value="${p.cups}" min="0">
+                <input type="number" inputmode="numeric" id="edit-t2c${i}" value="${p.cups}" min="0">
             </div>
             <div class="form-group">
                 <label>Redemption Cups</label>
-                <input type="number" id="edit-t2r${i}" value="${p.redemptionCups || 0}" min="0">
+                <input type="number" inputmode="numeric" id="edit-t2r${i}" value="${p.redemptionCups || 0}" min="0">
             </div>
             <div class="form-group">
                 <label>Overtime Cups</label>
-                <input type="number" id="edit-t2o${i}" value="${p.overtimeCups || 0}" min="0">
+                <input type="number" inputmode="numeric" id="edit-t2o${i}" value="${p.overtimeCups || 0}" min="0">
             </div>
             <div class="form-group">
                 <label>Yacks</label>
-                <input type="number" id="edit-t2y${i}" value="${p.yacks}" min="0">
+                <input type="number" inputmode="numeric" id="edit-t2y${i}" value="${p.yacks}" min="0">
             </div>
             <div class="form-group">
                 <label>Doubles</label>
-                <input type="number" id="edit-t2d${i}" value="${p.doubles || 0}" min="0">
+                <input type="number" inputmode="numeric" id="edit-t2d${i}" value="${p.doubles || 0}" min="0">
             </div>
             <div class="form-group">
                 <label>Tris</label>
-                <input type="number" id="edit-t2t${i}" value="${p.tris || 0}" min="0">
+                <input type="number" inputmode="numeric" id="edit-t2t${i}" value="${p.tris || 0}" min="0">
             </div>
             <div class="form-group">
                 <label>Quads</label>
-                <input type="number" id="edit-t2q${i}" value="${p.quads || 0}" min="0">
+                <input type="number" inputmode="numeric" id="edit-t2q${i}" value="${p.quads || 0}" min="0">
             </div>
         </div>`;
 });
@@ -1518,10 +1787,10 @@ game.teams[1].forEach((p, i) => {
                 c.innerHTML = '<p style="color:#888;">No players yet</p>';
                 return;
             }
-            let html = '<div style="margin-top:15px;"><strong style="color:#00ff00;">Total Players: ' + playerRoster.length + '</strong></div><ul style="margin-top:10px;">';
-            playerRoster.forEach((p, i) => html += `<li style="color:#00ff00;margin:5px 0;display:flex;justify-content:space-between;align-items:center;">
+            let html = '<div style="margin-top:15px;"><strong style="color:#00ff00;">Total Players: ' + playerRoster.length + '</strong></div><ul style="margin-top:10px;list-style:none;">';
+            playerRoster.forEach((p, i) => html += `<li style="color:#00ff00;margin:5px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;">
                 <span>${p}</span>
-                <button class="btn" style="padding:3px 8px;font-size:11px;background:#ff0000;" onclick="removePlayer(${i})">Remove</button>
+                <button class="btn" style="padding:6px 12px;font-size:12px;background:#ff0000;" onclick="removePlayer(${i})">Remove</button>
             </li>`);
             html += '</ul>';
             c.innerHTML = html;
@@ -1575,7 +1844,7 @@ game.teams[1].forEach((p, i) => {
     }
     
     n.style.display = 'none';
-    let html = '<table class="table"><thead><tr><th>Date</th><th>Game Name</th><th>Match</th><th>Winner</th></tr></thead><tbody>';
+    let html = '<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Game Name</th><th>Match</th><th>Winner</th></tr></thead><tbody>';
     [...approvedGames].reverse().forEach(g => {
         const t1 = g.teams[0].map(p => p.name).join(' & ');
         const t2 = g.teams[1].map(p => p.name).join(' & ');
@@ -1587,7 +1856,7 @@ game.teams[1].forEach((p, i) => {
                     <td style="color:#ffff00;">${w}</td>
                  </tr>`;
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     c.innerHTML = html;
 }
 
@@ -1604,18 +1873,18 @@ game.teams[1].forEach((p, i) => {
             }
             
             noPlayers.style.display = 'none';
-            let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:15px;">';
+            let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:15px;">';
             
             playerRoster.forEach(player => {
                 const stats = getPlayerStats(player);
                 html += `
                     <div class="stat-box" style="cursor:pointer;transition:all 0.3s;" onclick="showPlayerProfile('${player}')">
                         <div style="font-size:1.5rem;margin-bottom:10px;">👤</div>
-                        <div class="stat-number" style="font-size:1.3rem;">${player}</div>
+                        <div class="stat-number" style="font-size:1.2rem;">${player}</div>
                         <div class="stat-label" style="margin-top:10px;">
                             ${stats.games} Games | ${stats.wins}W-${stats.losses}L
                         </div>
-                        <div style="color:#888;font-size:0.85rem;margin-top:5px;">
+                        <div style="color:#888;font-size:0.8rem;margin-top:5px;">
                             ${stats.totalCups} Cups | ${stats.winRate}% Win Rate
                         </div>
                     </div>`;
@@ -1625,11 +1894,14 @@ game.teams[1].forEach((p, i) => {
             list.innerHTML = html;
         }
 
-        function calculateELO(playerName) {
+        // gamesList is optional — defaults to every game ever played.
+        // Pass a filtered array (e.g. one season) to get a scoped ELO.
+        function calculateELO(playerName, gamesList) {
+    const sourceGames = gamesList || approvedGames;
     let elo = 1000;
     const gamesPerDay = {};
     
-    approvedGames.forEach(game => {
+    sourceGames.forEach(game => {
         let playerTeam = null;
         let playerData = null;
         
@@ -1765,6 +2037,240 @@ game.teams[1].forEach((p, i) => {
                 avgCupsPerGame: games > 0 ? (totalCups / games).toFixed(1) : 0
             };
         }
+
+        /* ==================== SEASONS ==================== */
+        // A season runs July 1 -> June 30. It is identified by its starting year.
+
+        function getGameDate(game) {
+            if (game.timestamp) return new Date(game.timestamp);
+            const parsed = new Date(game.date);
+            return isNaN(parsed.getTime()) ? new Date(0) : parsed;
+        }
+
+        function getSeasonStartYear(date) {
+            // Month index 6 = July
+            return date.getMonth() >= 6 ? date.getFullYear() : date.getFullYear() - 1;
+        }
+
+        function getSeasonLabel(startYear) {
+            return startYear + '-' + String((startYear + 1) % 100).padStart(2, '0');
+        }
+
+        function getSeasonRangeText(startYear) {
+            return `July 1, ${startYear} — June 30, ${startYear + 1}`;
+        }
+
+        function getGamesInSeason(startYear) {
+            return approvedGames.filter(g => getSeasonStartYear(getGameDate(g)) === startYear);
+        }
+
+        function getAvailableSeasons() {
+            const years = new Set();
+            approvedGames.forEach(g => years.add(getSeasonStartYear(getGameDate(g))));
+            years.add(getSeasonStartYear(new Date())); // always offer the current season
+            return [...years].sort((a, b) => b - a);
+        }
+
+        function initSeasonSelector() {
+            const sel = document.getElementById('season-selector');
+            if (!sel) return;
+            const seasons = getAvailableSeasons();
+            const previous = sel.value;
+            const currentSeason = getSeasonStartYear(new Date());
+            sel.innerHTML = seasons.map(y =>
+                `<option value="${y}">${getSeasonLabel(y)}${y === currentSeason ? ' (Current)' : ''}</option>`
+            ).join('');
+            if (previous && seasons.includes(parseInt(previous))) {
+                sel.value = previous;
+            }
+        }
+
+        function buildSeasonPlayerStats(games) {
+            const stats = {};
+            games.forEach(game => {
+                game.teams.forEach((team, teamIndex) => {
+                    team.forEach(player => {
+                        if (!stats[player.name]) {
+                            stats[player.name] = {
+                                games: 0, wins: 0, losses: 0,
+                                regularCups: 0, redemptionCups: 0, overtimeCups: 0,
+                                totalCups: 0, yacks: 0, nakedMiles: 0
+                            };
+                        }
+                        const s = stats[player.name];
+                        const reg = player.cups || 0;
+                        const red = player.redemptionCups || 0;
+                        const ot = player.overtimeCups || 0;
+
+                        s.games++;
+                        s.regularCups += reg;
+                        s.redemptionCups += red;
+                        s.overtimeCups += ot;
+                        s.totalCups += reg + red + ot;
+                        s.yacks += player.yacks || 0;
+                        if (player.nakedMile) s.nakedMiles++;
+
+                        if (teamIndex + 1 === game.winningTeam) s.wins++;
+                        else s.losses++;
+                    });
+                });
+            });
+            return stats;
+        }
+
+        function updateSeasons() {
+            const sel = document.getElementById('season-selector');
+            if (!sel || !sel.value) return;
+
+            const startYear = parseInt(sel.value);
+            const seasonGames = getGamesInSeason(startYear);
+            const stats = buildSeasonPlayerStats(seasonGames);
+            const names = Object.keys(stats);
+
+            document.getElementById('season-range').textContent = getSeasonRangeText(startYear);
+
+            const totalCups = names.reduce((sum, n) => sum + stats[n].totalCups, 0);
+            const totalYacks = names.reduce((sum, n) => sum + stats[n].yacks, 0);
+
+            document.getElementById('season-games-count').textContent = seasonGames.length;
+            document.getElementById('season-players-count').textContent = names.length;
+            document.getElementById('season-cups-count').textContent = totalCups;
+            document.getElementById('season-yacks-count').textContent = totalYacks;
+
+            if (seasonGames.length === 0) {
+                document.getElementById('season-awards').innerHTML =
+                    '<p style="color:#888;padding:20px;">No games recorded in this season yet.</p>';
+                document.getElementById('season-standings').innerHTML =
+                    '<p style="color:#888;padding:20px;text-align:center;">No games recorded in this season yet.</p>';
+                document.getElementById('season-games').innerHTML =
+                    '<p style="color:#888;padding:20px;text-align:center;">No games recorded in this season yet.</p>';
+                return;
+            }
+
+            // ----- Standings (season ELO resets to 1000) -----
+            const standings = names.map(name => ({
+                name: name,
+                elo: calculateELO(name, seasonGames),
+                ...stats[name],
+                winRate: stats[name].games > 0
+                    ? Math.round((stats[name].wins / stats[name].games) * 100) : 0,
+                avgCups: stats[name].games > 0
+                    ? (stats[name].totalCups / stats[name].games).toFixed(1) : '0.0'
+            })).sort((a, b) => b.elo - a.elo);
+
+            let standingsHtml = '<div class="table-wrap"><table class="table"><thead><tr>' +
+                '<th>#</th><th>Player</th><th>ELO</th><th>GP</th><th>W-L</th><th>Win%</th>' +
+                '<th>Cups</th><th>Avg</th><th>Yacks</th><th>NM</th>' +
+                '</tr></thead><tbody>';
+
+            standings.forEach((p, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+                standingsHtml += `<tr style="cursor:pointer;" onclick="showPlayerProfile('${p.name}'); showPage('players');">
+                    <td>${medal}</td>
+                    <td style="color:#00ff00;font-weight:bold;">${p.name}</td>
+                    <td>${p.elo}</td>
+                    <td>${p.games}</td>
+                    <td>${p.wins}-${p.losses}</td>
+                    <td>${p.winRate}%</td>
+                    <td>${p.totalCups}</td>
+                    <td>${p.avgCups}</td>
+                    <td>${p.yacks}</td>
+                    <td>${p.nakedMiles || '-'}</td>
+                </tr>`;
+            });
+            standingsHtml += '</tbody></table></div>';
+            document.getElementById('season-standings').innerHTML = standingsHtml;
+
+            // ----- Awards -----
+            const champion = standings[0];
+
+            let sharpshooter = null;
+            names.forEach(n => {
+                if (!sharpshooter || stats[n].totalCups > stats[sharpshooter].totalCups) sharpshooter = n;
+            });
+
+            let bestRecord = null;
+            names.forEach(n => {
+                if (stats[n].games < 2) return;
+                const rate = stats[n].wins / stats[n].games;
+                if (!bestRecord || rate > (stats[bestRecord].wins / stats[bestRecord].games)) bestRecord = n;
+            });
+
+            let clutch = null;
+            names.forEach(n => {
+                const c = stats[n].redemptionCups + stats[n].overtimeCups;
+                if (c === 0) return;
+                const best = clutch ? stats[clutch].redemptionCups + stats[clutch].overtimeCups : -1;
+                if (c > best) clutch = n;
+            });
+
+            let landlubber = null;
+            names.forEach(n => {
+                if (stats[n].yacks === 0) return;
+                if (!landlubber || stats[n].yacks > stats[landlubber].yacks) landlubber = n;
+            });
+
+            let miler = null;
+            names.forEach(n => {
+                if (!stats[n].nakedMiles) return;
+                if (!miler || stats[n].nakedMiles > stats[miler].nakedMiles) miler = n;
+            });
+
+            const awardCard = (icon, label, name, detail, color) => `
+                <div class="stat-box" style="border:2px solid ${color};">
+                    <div style="font-size:2rem;margin-bottom:8px;">${icon}</div>
+                    <div class="stat-label" style="margin-bottom:8px;color:${color};">${label}</div>
+                    <span class="stat-number" style="font-size:1.2rem;color:${color};">${name}</span>
+                    <div style="color:#888;font-size:0.85rem;margin-top:5px;">${detail}</div>
+                </div>`;
+
+            let awardsHtml = '';
+            awardsHtml += awardCard('👑', 'SEASON CHAMPION', champion.name,
+                `${champion.elo} ELO · ${champion.wins}-${champion.losses}`, '#ffd700');
+
+            if (sharpshooter) {
+                awardsHtml += awardCard('🎯', 'SHARPSHOOTER', sharpshooter,
+                    `${stats[sharpshooter].totalCups} cups`, '#00ff00');
+            }
+            if (bestRecord) {
+                const s = stats[bestRecord];
+                awardsHtml += awardCard('🏆', 'BEST RECORD', bestRecord,
+                    `${s.wins}-${s.losses} (${Math.round((s.wins / s.games) * 100)}%)`, '#00ff00');
+            }
+            if (clutch) {
+                const s = stats[clutch];
+                awardsHtml += awardCard('🔱', 'MOST CLUTCH', clutch,
+                    `${s.redemptionCups} redemption · ${s.overtimeCups} OT`, '#ffaa00');
+            }
+            if (landlubber) {
+                awardsHtml += awardCard('🤢', 'LANDLUBBER', landlubber,
+                    `${stats[landlubber].yacks} yacks`, '#ff6666');
+            }
+            if (miler) {
+                awardsHtml += awardCard('🏃', 'NAKED MILER', miler,
+                    `${stats[miler].nakedMiles} naked miles`, '#ff6666');
+            }
+
+            document.getElementById('season-awards').innerHTML = awardsHtml;
+
+            // ----- Season game log -----
+            let gamesHtml = '<div class="table-wrap"><table class="table"><thead><tr>' +
+                '<th>Date</th><th>Game Name</th><th>Match</th><th>Winner</th></tr></thead><tbody>';
+            [...seasonGames].reverse().forEach(g => {
+                const t1 = g.teams[0].map(p => p.name).join(' & ');
+                const t2 = g.teams[1].map(p => p.name).join(' & ');
+                const w = g.winningTeam === 1 ? t1 : t2;
+                gamesHtml += `<tr style="cursor:pointer;" onclick="showGameDetails(${g.id})">
+                    <td>${g.date}</td>
+                    <td style="color:#00ff00;font-weight:bold;">${g.name || 'Game'}</td>
+                    <td>${t1} vs ${t2}</td>
+                    <td style="color:#ffff00;">${w}</td>
+                </tr>`;
+            });
+            gamesHtml += '</tbody></table></div>';
+            document.getElementById('season-games').innerHTML = gamesHtml;
+        }
+        /* ================== END SEASONS ================== */
 
         function setPeriod(period) {
             ['week', 'month', 'year', 'alltime'].forEach(p => {
@@ -2037,7 +2543,7 @@ game.teams[1].forEach((p, i) => {
             const content = document.getElementById('player-profile-content');
             
             let html = `
-                <h2 style="color:#00ff00;margin-top:20px;margin-bottom:30px;text-align:center;font-size:2rem;">
+                <h2 style="color:#00ff00;margin-top:20px;margin-bottom:30px;text-align:center;font-size:1.8rem;">
                     👤 ${playerName}
                 </h2>
                 
@@ -2073,6 +2579,7 @@ game.teams[1].forEach((p, i) => {
                 </div>
                 
                 <h3 style="color:#00ff00;margin-bottom:15px;">Game History</h3>
+                <div class="table-wrap">
                 <table class="table">
                     <thead>
                         <tr>
@@ -2118,12 +2625,13 @@ game.teams[1].forEach((p, i) => {
                 html += '<tr><td colspan="4" style="text-align:center;color:#888;padding:40px;">No games yet</td></tr>';
             }
             
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
             
             content.innerHTML = html;
             card.style.display = 'block';
             document.getElementById('players-list').style.display = 'none';
             document.getElementById('no-players').style.display = 'none';
+            window.scrollTo(0, 0);
         }
 
         function closePlayerProfile() {
@@ -2215,6 +2723,7 @@ game.teams[1].forEach((p, i) => {
                         updateAllGamesList();
                         updateHomeStats();
                         updateHighlights('week');
+                        initSeasonSelector();
                     }
                 } catch (error) {
                     alert('Error importing data: Invalid file format');
@@ -2230,25 +2739,25 @@ function showGameDetails(gameId) {
     if (!game) return;
     
     const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:1000;overflow-y:auto;padding:20px;';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:1000;overflow-y:auto;padding:15px;-webkit-overflow-scrolling:touch;';
     
     const t1 = game.teams[0].map(p => p.name).join(' & ');
     const t2 = game.teams[1].map(p => p.name).join(' & ');
     const winner = game.winningTeam === 1 ? t1 : t2;
     
-    let team1Stats = '<h4 style="color:#00ff00;margin-top:20px;">Team 1: ' + t1 + '</h4><table class="table">';
+    let team1Stats = '<h4 style="color:#00ff00;margin-top:20px;">Team 1: ' + t1 + '</h4><div class="table-wrap"><table class="table">';
     team1Stats += '<tr><th>Player</th><th>Cups</th><th>Redemption</th><th>OT</th><th>Yacks</th><th>Naked Mile</th></tr>';
     game.teams[0].forEach(p => {
         team1Stats += `<tr><td>${p.name}</td><td>${p.cups}</td><td>${p.redemptionCups||0}</td><td>${p.overtimeCups||0}</td><td>${p.yacks||0}</td><td>${p.nakedMile?'✓':'-'}</td></tr>`;
     });
-    team1Stats += '</table>';
+    team1Stats += '</table></div>';
     
-    let team2Stats = '<h4 style="color:#00ff00;margin-top:20px;">Team 2: ' + t2 + '</h4><table class="table">';
+    let team2Stats = '<h4 style="color:#00ff00;margin-top:20px;">Team 2: ' + t2 + '</h4><div class="table-wrap"><table class="table">';
     team2Stats += '<tr><th>Player</th><th>Cups</th><th>Redemption</th><th>OT</th><th>Yacks</th><th>Naked Mile</th></tr>';
     game.teams[1].forEach(p => {
         team2Stats += `<tr><td>${p.name}</td><td>${p.cups}</td><td>${p.redemptionCups||0}</td><td>${p.overtimeCups||0}</td><td>${p.yacks||0}</td><td>${p.nakedMile?'✓':'-'}</td></tr>`;
     });
-    team2Stats += '</table>';
+    team2Stats += '</table></div>';
     
     modal.innerHTML = `
         <div class="card" style="max-width:900px;margin:0 auto;">
@@ -2267,6 +2776,8 @@ function showGameDetails(gameId) {
         // Initialize on load
         updateHomeStats();
         updateHighlights('week');
+        initSeasonSelector();
     </script>
 </body>
 </html>
+
