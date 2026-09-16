@@ -332,6 +332,52 @@
             margin-bottom: 20px;
         }
 
+        .admin-quicknav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: var(--bg-base);
+            padding: 10px 0;
+            margin-bottom: 15px;
+        }
+
+        .admin-quicknav a {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: border-color 0.15s ease, color 0.15s ease;
+        }
+
+        .admin-quicknav a:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .admin-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .admin-card-head h2 {
+            margin-bottom: 0;
+        }
+
+        #admin-panel .card {
+            scroll-margin-top: 60px;
+        }
+
         .form-group {
             margin-bottom: 15px;
         }
@@ -1438,25 +1484,36 @@
                 <p id="login-error" style="color:#ff0000;display:none;">Incorrect!</p>
             </div>
             <div id="admin-panel" style="display:none;">
-                <div class="card">
+                <div class="admin-quicknav">
+                    <a href="#admin-settings">⚙️ Settings</a>
+                    <a href="#admin-games">🎮 Games</a>
+                    <a href="#admin-roster">👤 Roster</a>
+                    <a href="#admin-data">💾 Data</a>
+                    <button class="btn btn-danger" onclick="adminLogout()" style="margin-left:auto;">Logout</button>
+                </div>
+
+                <div class="card" id="admin-settings">
                     <h2>Site Settings</h2>
                     <div class="form-group">
                         <label style="display:flex;align-items:center;gap:10px;">
                             <input type="checkbox" id="tournament-mode-toggle" onchange="toggleTournamentMode()" style="width:auto;">
                             <span>Tournament Mode</span>
                         </label>
-                        <p style="color:#888;font-size:0.9rem;margin-top:5px;">Activates green background, white text, falling brackets animation, and tournament banner</p>
+                        <p style="color:var(--text-muted);font-size:0.9rem;margin-top:5px;">Activates green background, white text, falling brackets animation, and tournament banner</p>
                     </div>
                 </div>
 
-                <div class="card">
-                    <h2>All Games</h2>
-                    <button class="btn" onclick="adminLogout()" style="background:#ff0000;float:right;">Logout</button>
-                    <div style="clear:both;"></div>
+                <div class="card" id="admin-games">
+                    <div class="admin-card-head">
+                        <h2>All Games <span id="admin-games-count" style="color:var(--text-muted);font-weight:400;font-size:0.85rem;"></span></h2>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="admin-game-search" placeholder="Search by player, game name, or date..." oninput="updateApprovedGamesDisplay()">
+                    </div>
                     <div id="approved-games-container"></div>
                     <div id="no-approved-games" class="empty-state">No games yet</div>
                 </div>
-                <div class="card">
+                <div class="card" id="admin-roster">
                     <h2>Player Roster</h2>
                     <div class="form-group">
                         <label>Add New Player</label>
@@ -1467,16 +1524,16 @@
                     </div>
                     <div id="player-roster-list"></div>
                 </div>
-                <div class="card">
+                <div class="card" id="admin-data">
                     <h2>Data Management</h2>
                     <div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;">
                         <button class="btn" onclick="exportData()">Export JSON Backup</button>
-                        <label class="btn" style="background:#666;display:inline-block;cursor:pointer;">
+                        <label class="btn btn-secondary" style="display:inline-block;cursor:pointer;">
                             Import JSON Backup
                             <input type="file" accept=".json" onchange="importData(event)" style="display:none;">
                         </label>
                     </div>
-                    <p style="color:#888;font-size:0.9rem;margin-top:10px;">Export downloads a JSON backup file. Import to restore from a saved backup file.</p>
+                    <p style="color:var(--text-muted);font-size:0.9rem;margin-top:10px;">Export downloads a JSON backup file. Import to restore from a saved backup file.</p>
                 </div>
             </div>
         </div>
@@ -1887,16 +1944,38 @@
         function updateApprovedGamesDisplay() {
             const c = document.getElementById('approved-games-container');
             const n = document.getElementById('no-approved-games');
-            
+            const countEl = document.getElementById('admin-games-count');
+            const searchInput = document.getElementById('admin-game-search');
+            const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
             if (approvedGames.length === 0) {
                 c.innerHTML = '';
                 n.style.display = 'block';
+                n.textContent = 'No games yet';
+                if (countEl) countEl.textContent = '';
                 return;
             }
-            
+
+            const sorted = [...approvedGames].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            const filtered = query ? sorted.filter(g => {
+                const players = [...g.teams[0], ...g.teams[1]].map(p => p.name.toLowerCase()).join(' ');
+                return players.includes(query) ||
+                    (g.name || '').toLowerCase().includes(query) ||
+                    g.date.toLowerCase().includes(query);
+            }) : sorted;
+
+            if (countEl) countEl.textContent = `(${filtered.length} of ${approvedGames.length})`;
+
+            if (filtered.length === 0) {
+                c.innerHTML = '';
+                n.style.display = 'block';
+                n.textContent = 'No games match your search';
+                return;
+            }
+
             n.style.display = 'none';
             let html = '<div class="table-wrap"><table class="table"><thead><tr><th>ID</th><th>Date</th><th>Match</th><th>Winner</th><th>Actions</th></tr></thead><tbody>';
-            approvedGames.forEach((g, i) => {
+            filtered.forEach(g => {
                 const t1 = g.teams[0].map(p => p.name).join(' & ');
                 const t2 = g.teams[1].map(p => p.name).join(' & ');
                 const winner = g.winningTeam === 1 ? 'Team 1' : 'Team 2';
@@ -1906,8 +1985,8 @@
                     <td>${t1} vs ${t2}</td>
                     <td>${winner}</td>
                     <td>
-                        <button class="btn" style="padding:5px 10px;font-size:12px;margin-right:5px;" onclick="editGame(${i})">Edit</button>
-                        <button class="btn" style="padding:5px 10px;font-size:12px;background:#ff0000;" onclick="deleteGame(${i})">Delete</button>
+                        <button class="btn" style="padding:5px 10px;font-size:12px;margin-right:5px;" onclick="editGame(${g.id})">Edit</button>
+                        <button class="btn btn-danger" style="padding:5px 10px;font-size:12px;" onclick="deleteGame(${g.id})">Delete</button>
                     </td>
                 </tr>`;
             });
@@ -1915,14 +1994,61 @@
             c.innerHTML = html;
         }
 
-        function editGame(index) {
-            const game = approvedGames[index];
+        function closeEditGameModal() {
+            const modal = document.getElementById('edit-game-modal');
+            if (modal) modal.remove();
+        }
+
+        function editGame(gameId) {
+            const game = approvedGames.find(g => g.id === gameId);
+            if (!game) return;
             const t1 = game.teams[0].map(p => p.name).join(' & ');
             const t2 = game.teams[1].map(p => p.name).join(' & ');
-            
+
+            const playerFields = (p, i, teamNum) => `
+    <div style="background:var(--bg-sunken);padding:15px;margin:10px 0;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
+        <div class="form-group">
+            <label>Player Name</label>
+            <select id="edit-t${teamNum}p${i}">
+                ${playerRoster.map(name => `<option value="${name}" ${name === p.name ? 'selected' : ''}>${name}</option>`).join('')}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Regular Cups</label>
+            <input type="number" inputmode="numeric" id="edit-t${teamNum}c${i}" value="${p.cups}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Redemption Cups</label>
+            <input type="number" inputmode="numeric" id="edit-t${teamNum}r${i}" value="${p.redemptionCups || 0}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Overtime Cups</label>
+            <input type="number" inputmode="numeric" id="edit-t${teamNum}o${i}" value="${p.overtimeCups || 0}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Yacks</label>
+            <input type="number" inputmode="numeric" id="edit-t${teamNum}y${i}" value="${p.yacks}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Doubles</label>
+            <input type="number" inputmode="numeric" id="edit-t${teamNum}d${i}" value="${p.doubles || 0}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Tris</label>
+            <input type="number" inputmode="numeric" id="edit-t${teamNum}t${i}" value="${p.tris || 0}" min="0">
+        </div>
+        <div class="form-group">
+            <label>Quads</label>
+            <input type="number" inputmode="numeric" id="edit-t${teamNum}q${i}" value="${p.quads || 0}" min="0">
+        </div>
+    </div>`;
+
             let html = `
-                <div class="card" style="background:#1a1a00;border:2px solid #ffff00;">
-                    <h2 class="text-warning-block">Edit Game #${game.id}</h2>
+                <div class="card" style="max-width:700px;margin:0 auto;border:2px solid var(--warning);">
+                    <div class="admin-card-head">
+                        <h2 class="text-warning-block">Edit Game #${game.id}</h2>
+                        <button class="btn btn-secondary" onclick="closeEditGameModal()">✕ Close</button>
+                    </div>
                     <div class="form-group">
                         <label>Winner</label>
                         <select id="edit-winner">
@@ -1930,103 +2056,26 @@
                             <option value="2" ${game.winningTeam === 2 ? 'selected' : ''}>Team 2 (${t2})</option>
                         </select>
                     </div>
-                    <h3 style="color:#ffff00;margin-top:20px;">Team 1 Players</h3>`;
-            
-            game.teams[0].forEach((p, i) => {
-                html += `
-    <div style="background:#0a0a0a;padding:15px;margin:10px 0;border-radius:5px;">
-        <div class="form-group">
-            <label>Player Name</label>
-            <select id="edit-t1p${i}">
-                ${playerRoster.map(name => `<option value="${name}" ${name === p.name ? 'selected' : ''}>${name}</option>`).join('')}
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Regular Cups</label>
-            <input type="number" inputmode="numeric" id="edit-t1c${i}" value="${p.cups}" min="0">
-        </div>
-        <div class="form-group">
-            <label>Redemption Cups</label>
-            <input type="number" inputmode="numeric" id="edit-t1r${i}" value="${p.redemptionCups || 0}" min="0">
-        </div>
-        <div class="form-group">
-            <label>Overtime Cups</label>
-            <input type="number" inputmode="numeric" id="edit-t1o${i}" value="${p.overtimeCups || 0}" min="0">
-        </div>
-        <div class="form-group">
-            <label>Yacks</label>
-            <input type="number" inputmode="numeric" id="edit-t1y${i}" value="${p.yacks}" min="0">
-        </div>
-        <div class="form-group">
-            <label>Doubles</label>
-            <input type="number" inputmode="numeric" id="edit-t1d${i}" value="${p.doubles || 0}" min="0">
-        </div>
-        <div class="form-group">
-            <label>Tris</label>
-            <input type="number" inputmode="numeric" id="edit-t1t${i}" value="${p.tris || 0}" min="0">
-        </div>
-        <div class="form-group">
-            <label>Quads</label>
-            <input type="number" inputmode="numeric" id="edit-t1q${i}" value="${p.quads || 0}" min="0">
-        </div>
-    </div>`;
-            });
-            
-            html += `<h3 style="color:#ffff00;margin-top:20px;">Team 2 Players</h3>`;
-
-game.teams[1].forEach((p, i) => {
-    html += `
-        <div style="background:#0a0a0a;padding:15px;margin:10px 0;border-radius:5px;">
-            <div class="form-group">
-                <label>Player Name</label>
-                <select id="edit-t2p${i}">
-                    ${playerRoster.map(name => `<option value="${name}" ${name === p.name ? 'selected' : ''}>${name}</option>`).join('')}
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Regular Cups</label>
-                <input type="number" inputmode="numeric" id="edit-t2c${i}" value="${p.cups}" min="0">
-            </div>
-            <div class="form-group">
-                <label>Redemption Cups</label>
-                <input type="number" inputmode="numeric" id="edit-t2r${i}" value="${p.redemptionCups || 0}" min="0">
-            </div>
-            <div class="form-group">
-                <label>Overtime Cups</label>
-                <input type="number" inputmode="numeric" id="edit-t2o${i}" value="${p.overtimeCups || 0}" min="0">
-            </div>
-            <div class="form-group">
-                <label>Yacks</label>
-                <input type="number" inputmode="numeric" id="edit-t2y${i}" value="${p.yacks}" min="0">
-            </div>
-            <div class="form-group">
-                <label>Doubles</label>
-                <input type="number" inputmode="numeric" id="edit-t2d${i}" value="${p.doubles || 0}" min="0">
-            </div>
-            <div class="form-group">
-                <label>Tris</label>
-                <input type="number" inputmode="numeric" id="edit-t2t${i}" value="${p.tris || 0}" min="0">
-            </div>
-            <div class="form-group">
-                <label>Quads</label>
-                <input type="number" inputmode="numeric" id="edit-t2q${i}" value="${p.quads || 0}" min="0">
-            </div>
-        </div>`;
-});
-            
-            html += `
-                    <button class="btn" onclick="saveGameEdit(${index})" style="background:#00ff00;">Save Changes</button>
-                    <button class="btn" onclick="cancelEdit()" style="background:#666;margin-left:10px;">Cancel</button>
+                    <h3 style="color:var(--warning);margin-top:20px;">Team 1 Players</h3>
+                    ${game.teams[0].map((p, i) => playerFields(p, i, 1)).join('')}
+                    <h3 style="color:var(--warning);margin-top:20px;">Team 2 Players</h3>
+                    ${game.teams[1].map((p, i) => playerFields(p, i, 2)).join('')}
+                    <button class="btn" onclick="saveGameEdit(${game.id})" style="margin-top:15px;">Save Changes</button>
+                    <button class="btn btn-secondary" onclick="closeEditGameModal()" style="margin-left:10px;">Cancel</button>
                 </div>`;
-            
-            document.getElementById('approved-games-container').innerHTML = html;
-            document.getElementById('no-approved-games').style.display = 'none';
+
+            const modal = document.createElement('div');
+            modal.id = 'edit-game-modal';
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:1000;overflow-y:auto;padding:15px;-webkit-overflow-scrolling:touch;';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
         }
 
-        function saveGameEdit(index) {
-    const game = approvedGames[index];
+        function saveGameEdit(gameId) {
+    const game = approvedGames.find(g => g.id === gameId);
+    if (!game) return;
     game.winningTeam = parseInt(document.getElementById('edit-winner').value);
-    
+
     for (let t = 0; t < 2; t++) {
         game.teams[t].forEach((p, i) => {
             const teamNum = t + 1;
@@ -2040,27 +2089,23 @@ game.teams[1].forEach((p, i) => {
             p.quads = parseInt(document.getElementById(`edit-t${teamNum}q${i}`).value) || 0;
         });
     }
-    
-    alert('Game updated!');
+
+    closeEditGameModal();
     updateApprovedGamesDisplay();
     updateAllGamesList();
     saveToFirebase();
 }
 
-        function cancelEdit() {
-            updateApprovedGamesDisplay();
-        }
-
         function updatePlayerRoster() {
             const c = document.getElementById('player-roster-list');
             if (playerRoster.length === 0) {
-                c.innerHTML = '<p style="color:#888;">No players yet</p>';
+                c.innerHTML = '<p style="color:var(--text-muted);">No players yet</p>';
                 return;
             }
-            let html = '<div style="margin-top:15px;"><strong style="color:#00ff00;">Total Players: ' + playerRoster.length + '</strong></div><ul style="margin-top:10px;list-style:none;">';
-            playerRoster.forEach((p, i) => html += `<li style="color:#00ff00;margin:5px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            let html = '<div style="margin-top:15px;"><strong style="color:var(--accent);">Total Players: ' + playerRoster.length + '</strong></div><ul style="margin-top:10px;list-style:none;">';
+            playerRoster.forEach((p, i) => html += `<li style="color:var(--text-primary);margin:5px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;">
                 <span>${p}</span>
-                <button class="btn" style="padding:6px 12px;font-size:12px;background:#ff0000;" onclick="removePlayer(${i})">Remove</button>
+                <button class="btn btn-danger" style="padding:6px 12px;font-size:12px;" onclick="removePlayer(${i})">Remove</button>
             </li>`);
             html += '</ul>';
             c.innerHTML = html;
@@ -2081,7 +2126,7 @@ game.teams[1].forEach((p, i) => {
             document.getElementById('new-player-name').value = '';
             updatePlayerRoster();
             alert('Player added to roster!');
-            saveToFirebase(); 
+            saveToFirebase();
         }
 
         function removePlayer(index) {
@@ -2089,13 +2134,15 @@ game.teams[1].forEach((p, i) => {
                 playerRoster.splice(index, 1);
                 updatePlayerRoster();
                 saveToFirebase();
-        
+
             }
         }
 
-        function deleteGame(i) {
+        function deleteGame(gameId) {
             if (confirm('Delete game?')) {
-                approvedGames.splice(i, 1);
+                const idx = approvedGames.findIndex(g => g.id === gameId);
+                if (idx === -1) return;
+                approvedGames.splice(idx, 1);
                 updateApprovedGamesDisplay();
                 updateAllGamesList();
                 saveToFirebase();
