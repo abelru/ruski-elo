@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#0a0b0d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -11,9 +11,36 @@
      <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 
     <style>
+        :root {
+            --bg-base: #0a0b0d;
+            --bg-elevated: #14161a;
+            --bg-sunken: #0d0e11;
+            --bg-input: #1c1f24;
+            --border-subtle: #23262c;
+            --border-strong: rgba(0, 255, 136, 0.35);
+            --accent: #00ff88;
+            --accent-dim: #00cc6a;
+            --accent-glow: rgba(0, 255, 136, 0.25);
+            --text-primary: #eef1f4;
+            --text-secondary: #9aa1ab;
+            --text-muted: #5c626b;
+            --danger: #ff5566;
+            --warning: #ffd166;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --shadow-elevated: 0 8px 30px rgba(0, 0, 0, 0.55);
+            --font-display: 'Rajdhani', sans-serif;
+            --font-body: 'Inter', Arial, sans-serif;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -25,15 +52,15 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: #000;
-            color: #00ff00;
+            font-family: var(--font-body);
+            background: var(--bg-base);
+            color: var(--text-primary);
             min-height: 100vh;
             padding-bottom: calc(85px + env(safe-area-inset-bottom));
             transition: background-color 0.5s ease, color 0.5s ease;
             position: relative;
             overflow-x: hidden;
-            -webkit-tap-highlight-color: rgba(0, 255, 0, 0.2);
+            -webkit-tap-highlight-color: rgba(0, 255, 136, 0.2);
         }
 
         /* Tournament Theme */
@@ -263,7 +290,7 @@
         .header {
             text-align: center;
             padding: 40px 0;
-            border-bottom: 2px solid #00ff00;
+            border-bottom: 1px solid var(--border-subtle);
             margin-bottom: 30px;
         }
 
@@ -272,8 +299,11 @@
         }
 
         .header h1 {
+            font-family: var(--font-display);
             font-size: 3rem;
-            color: #00ff00;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: var(--text-primary);
             margin-bottom: 10px;
         }
 
@@ -286,15 +316,19 @@
         }
 
         .card {
-            background: #111;
-            border: 1px solid #00ff00;
-            border-radius: 10px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-card);
             padding: 25px;
             margin-bottom: 25px;
         }
 
         .card h2 {
-            color: #00ff00;
+            font-family: var(--font-display);
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            color: var(--accent);
             margin-bottom: 20px;
         }
 
@@ -304,9 +338,12 @@
 
         .form-group label {
             display: block;
-            color: #00ff00;
+            color: var(--text-secondary);
             margin-bottom: 5px;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
         .form-group input,
@@ -314,26 +351,65 @@
         .form-group textarea {
             width: 100%;
             padding: 10px;
-            background: #222;
-            border: 1px solid #00ff00;
-            border-radius: 5px;
-            color: #00ff00;
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
             font-size: 14px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
         }
 
         .btn {
-            background: #00ff00;
-            color: #000;
+            background: var(--accent);
+            color: #06110c;
             border: none;
             padding: 12px 25px;
-            border-radius: 5px;
+            border-radius: var(--radius-sm);
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 700;
+            font-family: var(--font-display);
+            letter-spacing: 0.02em;
             cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
         }
 
         .btn:hover {
-            background: #00cc00;
+            background: var(--accent-dim);
+            box-shadow: 0 0 16px var(--accent-glow);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-elevated);
+            border-color: var(--text-secondary);
+            box-shadow: none;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #2a0a0d;
+        }
+
+        .btn-danger:hover {
+            background: #ff7a87;
+            box-shadow: 0 0 16px rgba(255, 85, 102, 0.35);
         }
 
         .teams-grid {
@@ -344,14 +420,15 @@
         }
 
         .team {
-            background: #0a0a0a;
-            border: 1px solid #00ff00;
+            background: var(--bg-sunken);
+            border: 1px solid var(--border-subtle);
             padding: 15px;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
         }
 
         .team h3 {
-            color: #00ff00;
+            font-family: var(--font-display);
+            color: var(--accent);
             text-align: center;
             margin-bottom: 15px;
         }
@@ -361,15 +438,15 @@
         }
 
         .player-stats {
-            background: #0a0a0a;
-            border: 1px solid #00ff00;
+            background: var(--bg-sunken);
+            border: 1px solid var(--border-subtle);
             padding: 20px;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             margin-bottom: 20px;
         }
 
         .player-stats h4 {
-            color: #00ff00;
+            color: var(--accent);
             margin-bottom: 15px;
             text-align: center;
             font-size: 1.2rem;
@@ -389,22 +466,26 @@
         }
 
         .stat-box {
-            background: #0a0a0a;
-            border: 1px solid #00ff00;
+            background: var(--bg-sunken);
+            border: 1px solid var(--border-subtle);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
             padding: 20px;
             text-align: center;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
+            transition: border-color 0.15s ease, transform 0.15s ease;
         }
 
         .stat-number {
+            font-family: var(--font-display);
             font-size: 2rem;
-            font-weight: bold;
-            color: #00ff00;
+            font-weight: 700;
+            color: var(--accent);
+            text-shadow: 0 0 16px var(--accent-glow);
             display: block;
         }
 
         .stat-label {
-            color: #888;
+            color: var(--text-secondary);
             font-size: 0.9rem;
             margin-top: 5px;
         }
@@ -419,17 +500,20 @@
         .table td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #00ff00;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
         .table th {
-            background: #0a0a0a;
-            color: #00ff00;
-            font-weight: bold;
+            background: var(--bg-sunken);
+            color: var(--text-secondary);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
         }
 
         .table tr:hover td {
-            background: #0a0a0a;
+            background: var(--bg-sunken);
         }
 
         /* Horizontal scroll wrapper for wide tables on small screens */
@@ -455,10 +539,10 @@
 
         #season-selector {
             padding: 10px;
-            background: #222;
-            border: 1px solid #00ff00;
-            border-radius: 5px;
-            color: #00ff00;
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
             font-size: 15px;
             font-weight: bold;
             min-width: 200px;
@@ -475,8 +559,10 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: #111;
-            border-top: 2px solid #00ff00;
+            background: rgba(20, 22, 26, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-subtle);
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
@@ -489,26 +575,177 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #888;
+            color: var(--text-muted);
             background: none;
             border: none;
             padding: 8px 12px;
-            border-radius: 5px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 12px;
             flex: 1 1 0;
             min-width: 0;
+            transition: color 0.15s ease, background-color 0.15s ease;
         }
 
         .nav-btn.active,
         .nav-btn:hover {
-            color: #00ff00;
-            background: #222;
+            color: var(--accent);
+            background: rgba(0, 255, 136, 0.08);
         }
 
         .nav-icon {
             font-size: 1.2rem;
             margin-bottom: 2px;
+        }
+
+        /* ---------- RULES PAGE ---------- */
+        .rules-section-title {
+            font-family: var(--font-display);
+            color: var(--accent);
+            margin-top: 30px;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 20px;
+        }
+
+        .rules-subtitle {
+            font-family: var(--font-display);
+            color: var(--accent);
+            margin-top: 20px;
+            font-size: 1.1rem;
+        }
+
+        .rules-body {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .rules-formula {
+            color: var(--text-primary);
+            line-height: 1.8;
+            background: var(--bg-sunken);
+            border: 1px solid var(--border-subtle);
+            padding: 15px;
+            border-radius: var(--radius-sm);
+            font-family: monospace;
+        }
+
+        .rules-list {
+            color: var(--text-secondary);
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+
+        .rules-list > li {
+            margin-top: 10px;
+        }
+
+        .rules-list ul {
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+
+        .rules-example-box {
+            background: var(--bg-sunken);
+            border: 1px solid var(--border-subtle);
+            padding: 15px;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-top: 10px;
+        }
+
+        .rules-example-box ul {
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+
+        .rules-example-label {
+            color: var(--accent);
+        }
+
+        .rules-example-label.winner {
+            color: var(--accent);
+        }
+
+        .rules-example-label.loser {
+            color: var(--danger);
+        }
+
+        /* ---------- HOMEPAGE HIGHLIGHT PANELS ---------- */
+        .highlight-panel {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .highlight-panel h3 {
+            font-family: var(--font-display);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .highlight-panel.positive {
+            background: linear-gradient(160deg, rgba(0, 255, 136, 0.08), var(--bg-elevated));
+            border-color: var(--border-strong);
+        }
+
+        .highlight-panel.positive h3 { color: var(--accent); }
+
+        .highlight-panel.negative {
+            background: linear-gradient(160deg, rgba(255, 85, 102, 0.08), var(--bg-elevated));
+            border-color: rgba(255, 85, 102, 0.35);
+        }
+
+        .highlight-panel.negative h3 { color: var(--danger); }
+
+        .highlight-panel.neutral {
+            background: linear-gradient(160deg, rgba(255, 209, 102, 0.08), var(--bg-elevated));
+            border-color: rgba(255, 209, 102, 0.35);
+        }
+
+        .highlight-panel.neutral h3 { color: var(--warning); }
+
+        .stat-box.tint-accent { background: rgba(0, 255, 136, 0.06); border-color: rgba(0, 255, 136, 0.3); }
+        .stat-box.tint-danger { background: rgba(255, 85, 102, 0.06); border-color: rgba(255, 85, 102, 0.3); }
+        .stat-box.tint-warning { background: rgba(255, 209, 102, 0.06); border-color: rgba(255, 209, 102, 0.3); }
+
+        .stat-label.tint-accent, .stat-number.tint-accent { color: var(--accent); }
+        .stat-label.tint-danger, .stat-number.tint-danger { color: var(--danger); }
+        .stat-label.tint-warning, .stat-number.tint-warning { color: var(--warning); }
+
+        .text-muted-sm {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        /* ---------- SHARED UTILITY CLASSES (sweep of repeated inline styles) ---------- */
+        .text-accent-heading {
+            color: var(--accent);
+            margin-top: 20px;
+        }
+
+        .text-body-list {
+            color: var(--text-secondary);
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px;
+        }
+
+        .text-warning-block {
+            color: var(--warning);
+        }
+
+        .text-accent-bold {
+            color: var(--accent);
+            font-weight: bold;
         }
 
         /* ---------- MOBILE ---------- */
@@ -730,89 +967,89 @@
     </div>
     
     <!-- Captain's Table - Top Performers -->
-    <div style="background:#001a00;border:2px solid #00ff00;border-radius:10px;padding:20px;margin-bottom:25px;">
-        <h3 style="color:#00ff00;text-align:center;margin-bottom:20px;">🎣 CAPTAIN'S TABLE 🎣</h3>
+    <div class="highlight-panel positive">
+        <h3>🎣 CAPTAIN'S TABLE 🎣</h3>
         <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
-            <div class="stat-box" style="background:#002a00;border:2px solid #00ff00;">
+            <div class="stat-box tint-accent">
                 <div style="font-size:2rem;margin-bottom:10px;">⛵</div>
-                <div class="stat-label" style="margin-bottom:10px;color:#00ff00;">ADMIRAL</div>
+                <div class="stat-label tint-accent" style="margin-bottom:10px;">ADMIRAL</div>
                 <span class="stat-number" style="font-size:1.3rem;" id="highest-elo-player">No data</span>
-                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="highest-elo-stat">Highest ELO</div>
+                <div class="text-muted-sm" id="highest-elo-stat">Highest ELO</div>
             </div>
-            
-            <div class="stat-box" style="background:#002a00;border:2px solid #00ff00;">
+
+            <div class="stat-box tint-accent">
                 <div style="font-size:2rem;margin-bottom:10px;">🎯</div>
-                <div class="stat-label" style="margin-bottom:10px;color:#00ff00;">SHARPSHOOTER</div>
+                <div class="stat-label tint-accent" style="margin-bottom:10px;">SHARPSHOOTER</div>
                 <span class="stat-number" style="font-size:1.3rem;" id="most-cups-player">No data</span>
-                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="most-cups-stat">Most Cups Hit</div>
+                <div class="text-muted-sm" id="most-cups-stat">Most Cups Hit</div>
             </div>
-            
-            <div class="stat-box" style="background:#002a00;border:2px solid #00ff00;">
+
+            <div class="stat-box tint-accent">
                 <div style="font-size:2rem;margin-bottom:10px;">🏆</div>
-                <div class="stat-label" style="margin-bottom:10px;color:#00ff00;">CHAMPION</div>
+                <div class="stat-label tint-accent" style="margin-bottom:10px;">CHAMPION</div>
                 <span class="stat-number" style="font-size:1.3rem;" id="best-record-player">No data</span>
-                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="best-record-stat">Best Win Rate</div>
+                <div class="text-muted-sm" id="best-record-stat">Best Win Rate</div>
             </div>
-            
-            <div class="stat-box" style="background:#002a00;border:2px solid #ffaa00;">
+
+            <div class="stat-box tint-warning">
                 <div style="font-size:2rem;margin-bottom:10px;">🔱</div>
-                <div class="stat-label" style="margin-bottom:10px;color:#ffaa00;">RISING TIDE</div>
-                <span class="stat-number" style="font-size:1.3rem;color:#ffaa00;" id="best-gain-player">No data</span>
-                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="best-gain-stat">Biggest ELO Gain</div>
+                <div class="stat-label tint-warning" style="margin-bottom:10px;">RISING TIDE</div>
+                <span class="stat-number tint-warning" style="font-size:1.3rem;" id="best-gain-player">No data</span>
+                <div class="text-muted-sm" id="best-gain-stat">Biggest ELO Gain</div>
             </div>
         </div>
     </div>
-    
+
     <!-- The Depths - Bottom Performers -->
-    <div style="background:#1a0000;border:2px solid #ff0000;border-radius:10px;padding:20px;margin-bottom:25px;">
-        <h3 style="color:#ff6666;text-align:center;margin-bottom:20px;">⚓ JOEYS' LOCKER ⚓</h3>
+    <div class="highlight-panel negative">
+        <h3>⚓ JOEYS' LOCKER ⚓</h3>
         <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
-            <div class="stat-box" style="background:#2a0000;border:2px solid #ff0000;">
+            <div class="stat-box tint-danger">
                 <div style="font-size:2rem;margin-bottom:10px;">🌊</div>
-                <div class="stat-label" style="margin-bottom:10px;color:#ff6666;">OVERBOARD</div>
-                <span class="stat-number" style="font-size:1.3rem;color:#ff6666;" id="worst-player">No data</span>
-                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="worst-player-stat">Worst Win Rate</div>
+                <div class="stat-label tint-danger" style="margin-bottom:10px;">OVERBOARD</div>
+                <span class="stat-number tint-danger" style="font-size:1.3rem;" id="worst-player">No data</span>
+                <div class="text-muted-sm" id="worst-player-stat">Worst Win Rate</div>
             </div>
-            
-            <div class="stat-box" style="background:#2a0000;border:2px solid #ff0000;">
+
+            <div class="stat-box tint-danger">
                 <div style="font-size:2rem;margin-bottom:10px;">🤢</div>
-                <div class="stat-label" style="margin-bottom:10px;color:#ff6666;">LANDLUBBER</div>
-                <span class="stat-number" style="font-size:1.3rem;color:#ff6666;" id="most-yacks-player">No data</span>
-                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="most-yacks-stat">Most Yacks</div>
+                <div class="stat-label tint-danger" style="margin-bottom:10px;">LANDLUBBER</div>
+                <span class="stat-number tint-danger" style="font-size:1.3rem;" id="most-yacks-player">No data</span>
+                <div class="text-muted-sm" id="most-yacks-stat">Most Yacks</div>
             </div>
-            
-            <div class="stat-box" style="background:#2a0000;border:2px solid #ff0000;">
+
+            <div class="stat-box tint-danger">
                 <div style="font-size:2rem;margin-bottom:10px;">❌</div>
-                <div class="stat-label" style="margin-bottom:10px;color:#ff6666;">SCALLYWAG</div>
-                <span class="stat-number" style="font-size:1.3rem;color:#ff6666;" id="least-cups-player">No data</span>
-                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="least-cups-stat">Fewest Cups Hit</div>
+                <div class="stat-label tint-danger" style="margin-bottom:10px;">SCALLYWAG</div>
+                <span class="stat-number tint-danger" style="font-size:1.3rem;" id="least-cups-player">No data</span>
+                <div class="text-muted-sm" id="least-cups-stat">Fewest Cups Hit</div>
             </div>
-            
-            <div class="stat-box" style="background:#2a0000;border:2px solid #ff0000;">
+
+            <div class="stat-box tint-danger">
                 <div style="font-size:2rem;margin-bottom:10px;">⚓</div>
-                <div class="stat-label" style="margin-bottom:10px;color:#ff6666;">ANCHOR</div>
-                <span class="stat-number" style="font-size:1.3rem;color:#ff6666;" id="worst-loss-player">No data</span>
-                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="worst-loss-stat">Biggest ELO Loss</div>
+                <div class="stat-label tint-danger" style="margin-bottom:10px;">ANCHOR</div>
+                <span class="stat-number tint-danger" style="font-size:1.3rem;" id="worst-loss-player">No data</span>
+                <div class="text-muted-sm" id="worst-loss-stat">Biggest ELO Loss</div>
             </div>
         </div>
     </div>
-    
+
     <!-- Epic Battles -->
-    <div style="background:#1a1a00;border:2px solid #ffff00;border-radius:10px;padding:20px;">
-        <h3 style="color:#ffff00;text-align:center;margin-bottom:20px;">🚣 LEGENDARY REGATTAS 🚣</h3>
+    <div class="highlight-panel neutral">
+        <h3>🚣 LEGENDARY REGATTAS 🚣</h3>
         <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr));">
-            <div class="stat-box" style="background:#2a2a00;border:2px solid #ffff00;">
+            <div class="stat-box tint-warning">
                 <div style="font-size:2rem;margin-bottom:10px;">🔥</div>
-                <div class="stat-label" style="margin-bottom:10px;color:#ffff00;">BATTLE OF THE AGES</div>
-                <span class="stat-number" style="font-size:1.1rem;color:#ffff00;" id="best-game">No data</span>
-                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="best-game-stat">Most Competitive</div>
+                <div class="stat-label tint-warning" style="margin-bottom:10px;">BATTLE OF THE AGES</div>
+                <span class="stat-number tint-warning" style="font-size:1.1rem;" id="best-game">No data</span>
+                <div class="text-muted-sm" id="best-game-stat">Most Competitive</div>
             </div>
-            
-            <div class="stat-box" style="background:#2a2a00;border:2px solid #ffff00;">
+
+            <div class="stat-box tint-warning">
                 <div style="font-size:2rem;margin-bottom:10px;">💥</div>
-                <div class="stat-label" style="margin-bottom:10px;color:#ffff00;">MOST BRUTAL</div>
-                <span class="stat-number" style="font-size:1.1rem;color:#ffff00;" id="most-yacks-game">No data</span>
-                <div style="color:#888;font-size:0.85rem;margin-top:5px;" id="most-yacks-game-stat">Most Yacks in Game</div>
+                <div class="stat-label tint-warning" style="margin-bottom:10px;">MOST BRUTAL</div>
+                <span class="stat-number tint-warning" style="font-size:1.1rem;" id="most-yacks-game">No data</span>
+                <div class="text-muted-sm" id="most-yacks-game-stat">Most Yacks in Game</div>
             </div>
         </div>
     </div>
@@ -821,7 +1058,7 @@
             <div class="card">
                 <h2>Recent Games</h2>
                 <div id="all-games-list"></div>
-                <div id="no-games-yet" style="text-align: center; color: #888; padding: 40px;">
+                <div id="no-games-yet" class="empty-state">
                     <div style="font-size: 3rem; margin-bottom: 10px;">🎮</div>
                     <p>No games played yet. Submit your first game!</p>
                 </div>
@@ -888,7 +1125,7 @@
                     </thead>
                     <tbody id="rankings-tbody">
                         <tr>
-                            <td colspan="5" style="text-align:center;color:#888;padding:40px;">No games yet</td>
+                            <td colspan="5" class="empty-state">No games yet</td>
                         </tr>
                     </tbody>
                 </table>
@@ -945,7 +1182,7 @@
             <div class="card">
                 <h2>All Players</h2>
                 <div id="players-list"></div>
-                <div id="no-players" style="text-align:center;color:#888;padding:40px;">No players yet</div>
+                <div id="no-players" class="empty-state">No players yet</div>
             </div>
             <div id="player-profile-card" class="card" style="display:none;">
                 <button class="btn" onclick="closePlayerProfile()" style="background:#666;float:right;padding:8px 15px;">Back</button>
@@ -957,7 +1194,7 @@
             <div class="card">
                 <h2>Official Fisher Ruski Rules</h2>
                 
-                <h3 style="color:#00ff00;margin-top:20px;">Overview</h3>
+                <h3 class="text-accent-heading">Overview</h3>
                 <p style="color:#ccc;line-height:1.8;">Ruski is a fast-paced, strategic, drinking pong game. Teams of any even number of players compete to hit cups and manage turns, drinking, and formations.</p>
                 <ul style="color:#ccc;padding-left:20px;line-height:1.8;margin-top:10px;">
                     <li><strong>Standard 2v2 game:</strong> 10 cups per side, each 16 oz, filled with 1.5 12-oz beers.</li>
@@ -970,8 +1207,8 @@
                     </li>
                 </ul>
 
-                <h3 style="color:#00ff00;margin-top:20px;">Starting the Game</h3>
-                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
+                <h3 class="text-accent-heading">Starting the Game</h3>
+                <ul class="text-body-list">
                     <li><strong>First Shot – Eye-to-Eye:</strong>
                         <ul style="padding-left:20px;margin-top:5px;">
                             <li>Opposing players make eye contact and count to 3.</li>
@@ -981,8 +1218,8 @@
                     </li>
                 </ul>
 
-                <h3 style="color:#00ff00;margin-top:20px;">Turns & Shooting</h3>
-                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
+                <h3 class="text-accent-heading">Turns & Shooting</h3>
+                <ul class="text-body-list">
                     <li><strong>Cup Hit & Sequence:</strong> When a cup is hit, it is removed. The other teammate shoots next.</li>
                     <li><strong>Drinking Times:</strong>
                         <ul style="padding-left:20px;margin-top:5px;">
@@ -1007,8 +1244,8 @@
                     </li>
                 </ul>
 
-                <h3 style="color:#00ff00;margin-top:20px;">Formations & Reracks</h3>
-                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
+                <h3 class="text-accent-heading">Formations & Reracks</h3>
+                <ul class="text-body-list">
                     <li><strong>Triangle Formation (4-3-2-1):</strong>
                         <ul style="padding-left:20px;margin-top:5px;">
                             <li>When a triangle is possible, teams must call rerack immediately after hitting a cup.</li>
@@ -1023,8 +1260,8 @@
                     </li>
                 </ul>
 
-                <h3 style="color:#00ff00;margin-top:20px;">Special Calls</h3>
-                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
+                <h3 class="text-accent-heading">Special Calls</h3>
+                <ul class="text-body-list">
                     <li><strong>Sapuku:</strong> Can be called immediately after a cup is hit. Opposing team drinks unhit cups until next rerack.</li>
                     <li><strong>Other Calls:</strong>
                         <ul style="padding-left:20px;margin-top:5px;">
@@ -1035,20 +1272,20 @@
                     </li>
                 </ul>
 
-                <h3 style="color:#00ff00;margin-top:20px;">Turn Losses</h3>
-                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
+                <h3 class="text-accent-heading">Turn Losses</h3>
+                <ul class="text-body-list">
                     <li>Yacking or not finishing a cup in allotted time → lose next turn.</li>
                     <li>Player must finish the cup before shooting again.</li>
                 </ul>
 
-                <h3 style="color:#00ff00;margin-top:20px;">Naked Mile</h3>
-                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
+                <h3 class="text-accent-heading">Naked Mile</h3>
+                <ul class="text-body-list">
                     <li>If a player never hits a single cup during a game, they must run a naked mile.</li>
                     <li>Tri/Quad hits do NOT count as hitting a cup.</li>
                 </ul>
 
-                <h3 style="color:#00ff00;margin-top:20px;">Redemption & Overtime</h3>
-                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
+                <h3 class="text-accent-heading">Redemption & Overtime</h3>
+                <ul class="text-body-list">
                     <li><strong>Redemption:</strong>
                         <ul style="padding-left:20px;margin-top:5px;">
                             <li>After last cup is hit, losing team attempts to hit remaining cups.</li>
@@ -1065,8 +1302,8 @@
                     </li>
                 </ul>
 
-                <h3 style="color:#00ff00;margin-top:20px;">General Rules</h3>
-                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
+                <h3 class="text-accent-heading">General Rules</h3>
+                <ul class="text-body-list">
                     <li><strong>Gentleman's Game:</strong> Silence unless the shooter wants conversation or singing.</li>
                     <li><strong>Song Rule:</strong> Each player picks a redemption song and sticks to it forever. Shooter can shoot whenever during the song; hitting a cup restarts the song.</li>
                     <li><strong>Yacks & Turn Penalties:</strong> Missing or failing to drink → next turn lost.</li>
@@ -1075,102 +1312,119 @@
                 </ul>
 
                 <h3 style="color:#00ff00;margin-top:30px;border-top:2px solid #00ff00;padding-top:20px;">Seasons</h3>
-                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
+                <ul class="text-body-list">
                     <li>A season runs <strong>July 1 through June 30</strong>.</li>
                     <li>Season ELO starts fresh at 1000 for every player on July 1.</li>
                     <li>All-time ELO on the Rankings page is never reset.</li>
                 </ul>
 
-                <h3 style="color:#00ff00;margin-top:30px;border-top:2px solid #00ff00;padding-top:20px;">ELO Rating System</h3>
-                <p style="color:#ccc;line-height:1.8;margin-bottom:15px;">Fisher Ruski uses a comprehensive ELO system that rewards individual performance, teamwork, and consistency.</p>
-                
-                <h4 style="color:#00ff00;margin-top:15px;font-size:1.1rem;">Base Formula</h4>
-                <p style="color:#ccc;line-height:1.8;background:#0a0a0a;padding:15px;border-radius:5px;font-family:monospace;">
-                    ELO Change = (Win Share × 100) + (Cup Points) - (Yack Penalty) + (Margin Bonus/Penalty) + (Multi-Game Bonus)
-                </p>
+                <h3 class="rules-section-title">ELO Rating System</h3>
+                <p class="rules-body">Fisher Ruski uses a comprehensive ELO system that rewards individual performance, teamwork, and consistency.</p>
 
-                <h4 style="color:#00ff00;margin-top:20px;font-size:1.1rem;">Component Breakdown</h4>
-                <ul style="color:#ccc;padding-left:20px;line-height:1.8;">
-                    <li><strong>Win Share (Winners only - 100 points divided by team):</strong>
-                        <ul style="padding-left:20px;margin-top:5px;">
-                            <li>1v1: Winner gets 100 points</li>
-                            <li>2v2: Each winner gets 50 points</li>
-                            <li>3v3: Each winner gets 33.3 points</li>
-                            <li>4v4: Each winner gets 25 points</li>
+                <h4 class="rules-subtitle">Base Formula</h4>
+                <p class="rules-formula">
+                    ELO Change = (Cup Points × Performance Multiplier) + Win/Loss Adjustment + Clutch Bonus − Yack Penalty − Naked Mile Penalty, then × Multi-Game Multiplier
+                </p>
+                <p class="rules-body">All players start at 1000 ELO. There is no ceiling, floor, or decay — it's a pure running total of every game's ELO change.</p>
+
+                <h4 class="rules-subtitle">Component Breakdown</h4>
+                <ul class="rules-list">
+                    <li><strong>Cup Points (All players):</strong>
+                        <ul>
+                            <li>Regular Cup: 10 points each</li>
+                            <li>Redemption Cup: 20 points each</li>
+                            <li>Overtime Cup: 15 points each</li>
                         </ul>
                     </li>
-                    <li style="margin-top:10px;"><strong>Loss Penalty (Losers only):</strong>
-                        <ul style="padding-left:20px;margin-top:5px;">
-                            <li>1v1: Loser gets -50 points</li>
-                            <li>2v2: Each loser gets -25 points</li>
-                            <li>3v3: Each loser gets -16.7 points</li>
-                            <li>4v4: Each loser gets -12.5 points</li>
+                    <li><strong>Performance Multiplier (applied to Cup Points):</strong>
+                        <ul>
+                            <li>Your "fair share" of a 10-cup rack is 10 ÷ team size (1v1: 10, 2v2: 5, 3v3: 3.33, 4v4: 2.5)</li>
+                            <li>Multiplier = 1 + ((Total Cups Hit − Fair Share) × 0.15)</li>
+                            <li>Hit exactly your fair share → 1.0× (no change). Hit more → amplified. Hit less → reduced, and can even go negative if you're far under your fair share.</li>
                         </ul>
                     </li>
-                    <li style="margin-top:10px;"><strong>Cup Points (All players):</strong>
-                        <ul style="padding-left:20px;margin-top:5px;">
-                            <li>Regular Cup: +5 points</li>
-                            <li>Redemption Cup: +15 points (3× multiplier)</li>
-                            <li>Overtime Cup: +7.5 points (1.5× multiplier)</li>
+                    <li><strong>Win/Loss Adjustment:</strong>
+                        <ul>
+                            <li>Winners: flat +20 ÷ team size (1v1: +20, 2v2: +10, 3v3: +6.7, 4v4: +5)</li>
+                            <li>Losers: 0, unless you hit fewer cups than your fair share — then an extra penalty of (Total Cups Hit − Fair Share) × 15 applies</li>
                         </ul>
                     </li>
-                    <li style="margin-top:10px;"><strong>Yack Penalty (All players):</strong>
-                        <ul style="padding-left:20px;margin-top:5px;">
+                    <li><strong>Yack Penalty (All players):</strong>
+                        <ul>
                             <li>Each Yack: -15 points</li>
                         </ul>
                     </li>
-                    <li style="margin-top:10px;"><strong>Margin Bonus/Penalty:</strong>
-                        <ul style="padding-left:20px;margin-top:5px;">
-                            <li>Calculated as: (Your Cups - Opponent Average Cups) × 3</li>
-                            <li>Winners: Only positive margins count</li>
-                            <li>Losers: Only negative margins count (penalty)</li>
-                            <li>Example (Winner): You hit 10, opponents averaged 5 → +15 points</li>
-                            <li>Example (Loser): You hit 3, opponents averaged 8 → -15 points</li>
+                    <li><strong>Naked Mile Penalty (All players):</strong>
+                        <ul>
+                            <li>Hit zero total cups in a game: flat -100 points, regardless of win/loss</li>
                         </ul>
                     </li>
-                    <li style="margin-top:10px;"><strong>Multi-Game Bonus (All players):</strong>
-                        <ul style="padding-left:20px;margin-top:5px;">
-                            <li>First game of the day: Standard calculation</li>
-                            <li>Second game of the day: +20% to total ELO change</li>
-                            <li>Third+ game of the day: +30% to total ELO change</li>
+                    <li><strong>Clutch Bonus (Winners only):</strong>
+                        <ul>
+                            <li>Sank any Redemption Cup: +15 points</li>
+                            <li>Sank any Overtime Cup: +10 more points (stacks with the Redemption bonus)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Multi-Game Bonus (All players, per calendar day):</strong>
+                        <ul>
+                            <li>1st game of the day: standard calculation (×1.00)</li>
+                            <li>2nd game of the day: ×1.05 (+5%)</li>
+                            <li>3rd+ game of the day: ×1.10 (+10%)</li>
                             <li>Encourages tournament play and consistency</li>
                         </ul>
                     </li>
                 </ul>
 
-                <h4 style="color:#00ff00;margin-top:20px;font-size:1.1rem;">Example Calculations</h4>
-                <div style="background:#0a0a0a;padding:15px;border-radius:5px;color:#ccc;line-height:1.8;margin-top:10px;">
-                    <strong style="color:#00ff00;">Winner Scenario:</strong> 2v2 game, you won, hit 8 cups, 1 redemption cup, 1 yack, opponents averaged 4 cups, this is your 2nd game today
+                <h4 class="rules-subtitle">Example Calculations</h4>
+                <div class="rules-example-box">
+                    <strong class="rules-example-label winner">Winner Scenario:</strong> 2v2 game, you won, hit 6 regular cups + 1 redemption cup, 0 yacks, this is your 2nd game today
                     <br><br>
-                    <strong style="color:#00ff00;">Calculation:</strong>
-                    <ul style="padding-left:20px;margin-top:5px;">
-                        <li>Win Share: 100 ÷ 2 = 50 points</li>
-                        <li>Cup Points: (8 × 5) + (1 × 15) = 55 points</li>
+                    <strong class="rules-example-label">Calculation:</strong>
+                    <ul>
+                        <li>Cup Points: (6 × 10) + (1 × 20) = 80 points</li>
+                        <li>Fair Share: 10 ÷ 2 = 5 cups. You hit 7, which is 2 above fair share.</li>
+                        <li>Performance Multiplier: 1 + (2 × 0.15) = 1.30 → 80 × 1.30 = 104 points</li>
+                        <li>Win/Loss Adjustment: 20 ÷ 2 = 10 points</li>
+                        <li>Clutch Bonus: +15 (redemption cup on a win)</li>
+                        <li>Subtotal: 104 + 10 + 15 = 129 points</li>
+                        <li>Multi-Game Bonus (2nd game): 129 × 1.05 = 135.45 points</li>
+                    </ul>
+                    <strong class="rules-example-label winner">Final ELO Change: +135 points</strong>
+                </div>
+
+                <div class="rules-example-box">
+                    <strong class="rules-example-label loser">Loser Scenario:</strong> 2v2 game, you lost, hit 2 regular cups, 1 yack, this is your 1st game today
+                    <br><br>
+                    <strong class="rules-example-label">Calculation:</strong>
+                    <ul>
+                        <li>Cup Points: 2 × 10 = 20 points</li>
+                        <li>Fair Share: 10 ÷ 2 = 5 cups. You hit 2, which is 3 below fair share.</li>
+                        <li>Performance Multiplier: 1 + (-3 × 0.15) = 0.55 → 20 × 0.55 = 11 points</li>
+                        <li>Win/Loss Adjustment: you're under your fair share, so -3 × 15 = -45 points</li>
                         <li>Yack Penalty: 1 × -15 = -15 points</li>
-                        <li>Margin Bonus: (8 - 4) × 3 = 12 points</li>
-                        <li>Subtotal: 102 points</li>
-                        <li>Multi-Game Bonus: 102 × 1.20 = 122.4 points</li>
+                        <li>Subtotal: 11 - 45 - 15 = -49 points</li>
+                        <li>Multi-Game Bonus: none (1st game of the day)</li>
                     </ul>
-                    <strong style="color:#00ff00;">Final ELO Change: +122 points</strong>
+                    <strong class="rules-example-label loser">Final ELO Change: -49 points</strong>
                 </div>
 
-                <div style="background:#0a0a0a;padding:15px;border-radius:5px;color:#ccc;line-height:1.8;margin-top:10px;">
-                    <strong style="color:#ff6666;">Loser Scenario:</strong> 2v2 game, you lost, hit 3 cups, 2 yacks, opponents averaged 9 cups, this is your 1st game today
+                <div class="rules-example-box">
+                    <strong class="rules-example-label loser">Naked Mile Scenario:</strong> 2v2 game, you lost, hit 0 cups, 0 yacks, this is your 1st game today
                     <br><br>
-                    <strong style="color:#00ff00;">Calculation:</strong>
-                    <ul style="padding-left:20px;margin-top:5px;">
-                        <li>Loss Penalty: -50 ÷ 2 = -25 points</li>
-                        <li>Cup Points: 3 × 5 = 15 points</li>
-                        <li>Yack Penalty: 2 × -15 = -30 points</li>
-                        <li>Margin Penalty: (3 - 9) × 3 = -18 points</li>
-                        <li>Subtotal: -58 points</li>
-                        <li>Multi-Game Bonus: N/A (first game)</li>
+                    <strong class="rules-example-label">Calculation:</strong>
+                    <ul>
+                        <li>Cup Points: 0 points</li>
+                        <li>Fair Share: 5 cups. You hit 0, which is 5 below fair share.</li>
+                        <li>Performance Multiplier applies to 0 Cup Points, so it contributes 0 either way</li>
+                        <li>Win/Loss Adjustment: -5 × 15 = -75 points</li>
+                        <li>Naked Mile Penalty: -100 points (hit zero total cups)</li>
+                        <li>Subtotal: -75 - 100 = -175 points</li>
                     </ul>
-                    <strong style="color:#ff6666;">Final ELO Change: -58 points</strong>
+                    <strong class="rules-example-label loser">Final ELO Change: -175 points</strong>
                 </div>
 
-                <h4 style="color:#00ff00;margin-top:20px;font-size:1.1rem;">Starting ELO</h4>
-                <p style="color:#ccc;line-height:1.8;">All players begin at 1000 ELO. Rankings are relative and evolve based on performance over time.</p>
+                <h4 class="rules-subtitle">Starting ELO</h4>
+                <p class="rules-body">All players begin at 1000 ELO. Rankings are relative and evolve based on performance over time — there is no cap, floor, or decay.</p>
             </div>
         </div>
 
@@ -1200,7 +1454,7 @@
                     <button class="btn" onclick="adminLogout()" style="background:#ff0000;float:right;">Logout</button>
                     <div style="clear:both;"></div>
                     <div id="approved-games-container"></div>
-                    <div id="no-approved-games" style="text-align:center;color:#888;padding:40px;">No games yet</div>
+                    <div id="no-approved-games" class="empty-state">No games yet</div>
                 </div>
                 <div class="card">
                     <h2>Player Roster</h2>
@@ -1668,7 +1922,7 @@
             
             let html = `
                 <div class="card" style="background:#1a1a00;border:2px solid #ffff00;">
-                    <h2 style="color:#ffff00;">Edit Game #${game.id}</h2>
+                    <h2 class="text-warning-block">Edit Game #${game.id}</h2>
                     <div class="form-group">
                         <label>Winner</label>
                         <select id="edit-winner">
@@ -1867,9 +2121,9 @@ game.teams[1].forEach((p, i) => {
         const w = g.winningTeam === 1 ? t1 : t2;
         html += `<tr style="cursor:pointer;" onclick="showGameDetails(${g.id})">
                     <td>${g.date}</td>
-                    <td style="color:#00ff00;font-weight:bold;">${g.name || 'Game'}</td>
+                    <td class="text-accent-bold">${g.name || 'Game'}</td>
                     <td>${t1} vs ${t2}</td>
-                    <td style="color:#ffff00;">${w}</td>
+                    <td class="text-warning-block">${w}</td>
                  </tr>`;
     });
     html += '</tbody></table></div>';
@@ -1910,60 +2164,26 @@ game.teams[1].forEach((p, i) => {
             list.innerHTML = html;
         }
 
-        // gamesList is optional — defaults to every game ever played.
-        // Pass a filtered array (e.g. one season) to get a scoped ELO.
-        function calculateELO(playerName, gamesList) {
-    const sourceGames = gamesList || approvedGames;
-    let elo = 1000;
-    const gamesPerDay = {};
-    
-    sourceGames.forEach(game => {
-        let playerTeam = null;
-        let playerData = null;
-        
-        game.teams.forEach((team, teamIndex) => {
-            team.forEach(player => {
-                if (player.name === playerName) {
-                    playerTeam = teamIndex + 1;
-                    playerData = player;
-                }
-            });
-        });
-        
-        if (playerTeam) {
-            const gameDate = game.date.split(',')[0];
-            gamesPerDay[gameDate] = (gamesPerDay[gameDate] || 0) + 1;
-            const gameNumber = gamesPerDay[gameDate];
-            
+        // Computes one player's raw ELO delta for a single game (unrounded).
+        // Shared by calculateELO() and updateHighlights() so both agree on the formula.
+        function calculateGameEloDelta(game, playerTeam, playerData, gameNumber) {
             const isWinner = playerTeam === game.winningTeam;
             const teamSize = game.size;
-            
-            const opponentTeam = game.teams[playerTeam === 1 ? 1 : 0];
-            let totalCupsAvailable = opponentTeam.length * 10;
-            
-            opponentTeam.forEach(p => {
-                const doubles = p.doubles || 0;
-                const tris = p.tris || 0;
-                const quads = p.quads || 0;
-                totalCupsAvailable -= (doubles * 1 + tris * 2 + quads * 3);
-            });
-            
-            totalCupsAvailable = Math.max(1, totalCupsAvailable);
-            
+
             const regularCups = playerData.cups || 0;
             const redemptionCups = playerData.redemptionCups || 0;
             const overtimeCups = playerData.overtimeCups || 0;
             const totalCupsHit = regularCups + redemptionCups + overtimeCups;
-            
-            const cupPoints = (regularCups * 10) + 
+
+            const cupPoints = (regularCups * 10) +
                             (redemptionCups * 20) +
                             (overtimeCups * 15);
-            
+
             const fairShareCups = 10 / teamSize;
             const cupsAboveFairShare = totalCupsHit - fairShareCups;
-            
+
             const performanceMultiplier = 1 + (cupsAboveFairShare * 0.15);
-            
+
             let winLossAdjustment = 0;
             if (isWinner) {
                 winLossAdjustment = 20 / teamSize;
@@ -1974,10 +2194,10 @@ game.teams[1].forEach((p, i) => {
                     winLossAdjustment = 0;
                 }
             }
-            
+
             const yackPenalty = (playerData.yacks || 0) * -15;
             const nakedMilePenalty = totalCupsHit === 0 ? -100 : 0;
-            
+
             let clutchBonus = 0;
             if (isWinner && redemptionCups > 0) {
                 clutchBonus = 15;
@@ -1985,23 +2205,51 @@ game.teams[1].forEach((p, i) => {
             if (isWinner && overtimeCups > 0) {
                 clutchBonus += 10;
             }
-            
-            let eloChange = (cupPoints * performanceMultiplier) + 
-                  winLossAdjustment + 
-                  clutchBonus + 
+
+            let eloChange = (cupPoints * performanceMultiplier) +
+                  winLossAdjustment +
+                  clutchBonus +
                   yackPenalty +
                   nakedMilePenalty;
-            
+
             if (gameNumber === 2) {
                 eloChange *= 1.05;
             } else if (gameNumber >= 3) {
                 eloChange *= 1.10;
             }
-            
-            elo += eloChange;
+
+            return eloChange;
+        }
+
+        // gamesList is optional — defaults to every game ever played.
+        // Pass a filtered array (e.g. one season) to get a scoped ELO.
+        function calculateELO(playerName, gamesList) {
+    const sourceGames = gamesList || approvedGames;
+    let elo = 1000;
+    const gamesPerDay = {};
+
+    sourceGames.forEach(game => {
+        let playerTeam = null;
+        let playerData = null;
+
+        game.teams.forEach((team, teamIndex) => {
+            team.forEach(player => {
+                if (player.name === playerName) {
+                    playerTeam = teamIndex + 1;
+                    playerData = player;
+                }
+            });
+        });
+
+        if (playerTeam) {
+            const gameDate = game.date.split(',')[0];
+            gamesPerDay[gameDate] = (gamesPerDay[gameDate] || 0) + 1;
+            const gameNumber = gamesPerDay[gameDate];
+
+            elo += calculateGameEloDelta(game, playerTeam, playerData, gameNumber);
         }
     });
-    
+
     return Math.round(elo);
 }
 
@@ -2183,7 +2431,7 @@ game.teams[1].forEach((p, i) => {
                 const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
                 standingsHtml += `<tr style="cursor:pointer;" onclick="showPlayerProfile('${p.name}'); showPage('players');">
                     <td>${medal}</td>
-                    <td style="color:#00ff00;font-weight:bold;">${p.name}</td>
+                    <td class="text-accent-bold">${p.name}</td>
                     <td>${p.elo}</td>
                     <td>${p.games}</td>
                     <td>${p.wins}-${p.losses}</td>
@@ -2278,9 +2526,9 @@ game.teams[1].forEach((p, i) => {
                 const w = g.winningTeam === 1 ? t1 : t2;
                 gamesHtml += `<tr style="cursor:pointer;" onclick="showGameDetails(${g.id})">
                     <td>${g.date}</td>
-                    <td style="color:#00ff00;font-weight:bold;">${g.name || 'Game'}</td>
+                    <td class="text-accent-bold">${g.name || 'Game'}</td>
                     <td>${t1} vs ${t2}</td>
-                    <td style="color:#ffff00;">${w}</td>
+                    <td class="text-warning-block">${w}</td>
                 </tr>`;
             });
             gamesHtml += '</tbody></table></div>';
@@ -2330,7 +2578,8 @@ game.teams[1].forEach((p, i) => {
     
     const playerStats = {};
     const playerELOChanges = {};
-    
+    const gamesPerDayByPlayer = {};
+
     filteredGames.forEach(game => {
         game.teams.forEach((team, teamIndex) => {
             team.forEach(player => {
@@ -2344,29 +2593,25 @@ game.teams[1].forEach((p, i) => {
                         eloChanges: []
                     };
                 }
-                
+
                 const stats = playerStats[player.name];
                 stats.games++;
                 stats.cups += player.cups + (player.redemptionCups || 0) + (player.overtimeCups || 0);
                 stats.yacks += player.yacks || 0;
-                
+
                 if (teamIndex + 1 === game.winningTeam) {
                     stats.wins++;
                 } else {
                     stats.losses++;
                 }
-                
-                const isWinner = (teamIndex + 1) === game.winningTeam;
-                const teamSize = game.size;
-                const cupsHit = player.cups + (player.redemptionCups || 0) + (player.overtimeCups || 0);
-                
-                let eloChange = 0;
-                if (isWinner) {
-                    eloChange = (150 / teamSize) + (cupsHit * 5) - ((player.yacks || 0) * 20);
-                } else {
-                    eloChange = (-100 / teamSize) + (cupsHit * 2.5) - ((player.yacks || 0) * 20);
-                }
-                
+
+                const gameDate = game.date.split(',')[0];
+                if (!gamesPerDayByPlayer[player.name]) gamesPerDayByPlayer[player.name] = {};
+                gamesPerDayByPlayer[player.name][gameDate] = (gamesPerDayByPlayer[player.name][gameDate] || 0) + 1;
+                const gameNumber = gamesPerDayByPlayer[player.name][gameDate];
+
+                const eloChange = calculateGameEloDelta(game, teamIndex + 1, player, gameNumber);
+
                 stats.eloChanges.push(eloChange);
             });
         });
@@ -2588,8 +2833,8 @@ game.teams[1].forEach((p, i) => {
                         <span class="stat-number">${stats.totalYacks}</span>
                         <div class="stat-label">Total Yacks</div>
                     </div>
-                    <div class="stat-box" style="${stats.nakedMiles > 0 ? 'background:#2a0000;border-color:#ff0000;' : ''}">
-                        <span class="stat-number" style="${stats.nakedMiles > 0 ? 'color:#ff6666;' : ''}">${stats.nakedMiles}</span>
+                    <div class="stat-box ${stats.nakedMiles > 0 ? 'tint-danger' : ''}">
+                        <span class="stat-number ${stats.nakedMiles > 0 ? 'tint-danger' : ''}">${stats.nakedMiles}</span>
                         <div class="stat-label">Naked Miles</div>
                     </div>
                 </div>
@@ -2638,7 +2883,7 @@ game.teams[1].forEach((p, i) => {
             });
             
             if (stats.games === 0) {
-                html += '<tr><td colspan="4" style="text-align:center;color:#888;padding:40px;">No games yet</td></tr>';
+                html += '<tr><td colspan="4" class="empty-state">No games yet</td></tr>';
             }
             
             html += '</tbody></table></div>';
@@ -2660,7 +2905,7 @@ game.teams[1].forEach((p, i) => {
             const tbody = document.getElementById('rankings-tbody');
             
             if (playerRoster.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;padding:40px;">No games yet</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No games yet</td></tr>';
                 return;
             }
             
@@ -2678,7 +2923,7 @@ game.teams[1].forEach((p, i) => {
                 html += `
                     <tr style="cursor:pointer;" onclick="showPlayerProfile('${player.name}'); showPage('players');">
                         <td>${index + 1}</td>
-                        <td style="color:#00ff00;font-weight:bold;">${player.name}</td>
+                        <td class="text-accent-bold">${player.name}</td>
                         <td>${player.elo}</td>
                         <td>${player.games}</td>
                         <td>${player.winRate}%</td>
@@ -2761,14 +3006,14 @@ function showGameDetails(gameId) {
     const t2 = game.teams[1].map(p => p.name).join(' & ');
     const winner = game.winningTeam === 1 ? t1 : t2;
     
-    let team1Stats = '<h4 style="color:#00ff00;margin-top:20px;">Team 1: ' + t1 + '</h4><div class="table-wrap"><table class="table">';
+    let team1Stats = '<h4 class="text-accent-heading">Team 1: ' + t1 + '</h4><div class="table-wrap"><table class="table">';
     team1Stats += '<tr><th>Player</th><th>Cups</th><th>Redemption</th><th>OT</th><th>Yacks</th><th>Naked Mile</th></tr>';
     game.teams[0].forEach(p => {
         team1Stats += `<tr><td>${p.name}</td><td>${p.cups}</td><td>${p.redemptionCups||0}</td><td>${p.overtimeCups||0}</td><td>${p.yacks||0}</td><td>${p.nakedMile?'✓':'-'}</td></tr>`;
     });
     team1Stats += '</table></div>';
     
-    let team2Stats = '<h4 style="color:#00ff00;margin-top:20px;">Team 2: ' + t2 + '</h4><div class="table-wrap"><table class="table">';
+    let team2Stats = '<h4 class="text-accent-heading">Team 2: ' + t2 + '</h4><div class="table-wrap"><table class="table">';
     team2Stats += '<tr><th>Player</th><th>Cups</th><th>Redemption</th><th>OT</th><th>Yacks</th><th>Naked Mile</th></tr>';
     game.teams[1].forEach(p => {
         team2Stats += `<tr><td>${p.name}</td><td>${p.cups}</td><td>${p.redemptionCups||0}</td><td>${p.overtimeCups||0}</td><td>${p.yacks||0}</td><td>${p.nakedMile?'✓':'-'}</td></tr>`;
@@ -2780,7 +3025,7 @@ function showGameDetails(gameId) {
             <button onclick="this.parentElement.parentElement.remove()" class="btn" style="float:right;">Close</button>
             <h2 style="color:#00ff00;margin-bottom:20px;">🎮 ${game.name || 'Game'}</h2>
             <p style="margin-bottom:10px;"><strong>Date:</strong> ${game.date}</p>
-            <p style="margin-bottom:30px;"><strong>Winner:</strong> <span style="color:#ffff00;">${winner}</span></p>
+            <p style="margin-bottom:30px;"><strong>Winner:</strong> <span class="text-warning-block">${winner}</span></p>
             ${team1Stats}
             ${team2Stats}
         </div>
