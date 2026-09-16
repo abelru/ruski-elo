@@ -683,6 +683,7 @@
     <div class="container">
         <div class="header">
             <div style="font-size: 4rem; margin-bottom: 10px;">🍺</div>
+            <div id="freshman-countdown" style="font-size: 1.1rem; font-weight: bold; color: #ffd700; margin-bottom: 10px;"></div>
             <h1>Fisher Ruski Tracker</h1>
             <p style="color: #888;">Please Use Fisher Names</p>
         </div>
@@ -1285,7 +1286,22 @@
             firebase.initializeApp(firebaseConfig);
             database = firebase.database();
             loadFromFirebase();
+            updateFreshmanCountdown();
         });
+
+        // Countdown to the next Thursday, when freshmen can submit
+        function updateFreshmanCountdown() {
+            const el = document.getElementById('freshman-countdown');
+            if (!el) return;
+
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const daysUntilThursday = (4 - today.getDay() + 7) % 7; // Thursday = 4
+
+            el.textContent = daysUntilThursday === 0
+                ? "Freshman can submit today!"
+                : `${daysUntilThursday} day${daysUntilThursday === 1 ? '' : 's'} until freshman can submit`;
+        }
 
         // Load data from Firebase
         function loadFromFirebase() {
