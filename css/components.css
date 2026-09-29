@@ -73,3 +73,4 @@ a.lrow:hover,a.lrow:focus-visible{background:var(--line-soft)}
 
 /* Dev modes (?mock=1 / ?readonly=1): always visible so nobody mistakes them for the real site */
 .devbadge{font:600 12px/1.2 var(--f-ui);letter-spacing:.02em;color:var(--pine);background:var(--flag-o);padding:4px 8px;border-radius:var(--r-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rk-tabs{margin-bottom:var(--s6)}
