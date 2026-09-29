@@ -1,7 +1,10 @@
 /* Data layer: the ONLY file that talks to Firebase.
  *
  *   R.state   { games, roster, counter, tournament, loaded, rev, error, mode }
- *   R.data    { mode, init(), subscribe(fn), commit(mutator) -> Promise, save() -> Promise }
+ *   R.data    { mode, init(), subscribe(fn), commit(mutator) -> Promise, save() -> Promise, addMinigameShots(shots, hits) }
+ *
+ * The mini game keeps a running total of every player's shots at `minigameStats` ({shots, hits}), a separate
+ * node from the game data. It is only ever incremented with a transaction, never written whole.
  *
  * Storage shape is unchanged from the old single-file app: one object at `fisherRuskiData` that is
  * written whole with set():  { approvedGames, playerRoster, gameIdCounter, tournamentMode, lastSaved }.
@@ -19,7 +22,8 @@
   const localHost = ['localhost', '127.0.0.1', '[::1]', ''].includes(location.hostname);
   const mode = qs.get('mock') === '1' && localHost ? 'mock' : qs.get('readonly') === '1' ? 'readonly' : 'live';
 
-  const S = R.state = { games: [], roster: [], counter: 1, tournament: false, loaded: false, rev: 0, error: null, mode };
+  const S = R.state = { games: [], roster: [], counter: 1, tournament: false, loaded: false, rev: 0, error: null, mode, mg: { shots: 0, hits: 0 } };
+  const MG_PATH = 'minigameStats';
   const subs = [];
   let database = null;
 
@@ -63,6 +67,16 @@
     });
   }
 
+  /* add one visit's mini-game shots to everyone's total. Atomic, so two phones finishing at once both count. */
+  function addMinigameShots(shots, hits) {
+    shots = Math.floor(shots); hits = Math.floor(hits);
+    if (!(shots > 0 && shots <= 500 && hits >= 0 && hits <= shots)) return Promise.resolve();
+    if (mode !== 'live' || !database) { console.info('[ruski:' + mode + '] mini game stats not sent (' + hits + '/' + shots + ')'); return Promise.resolve(); }
+    return database.ref(MG_PATH).transaction(cur => ({
+      shots: ((cur && cur.shots) | 0) + shots, hits: ((cur && cur.hits) | 0) + hits, updated: new Date().toISOString()
+    })).catch(err => console.warn('mini game stats not saved', err));
+  }
+
   function init() {
     const badge = { mock: 'Mock data. Nothing is saved.', readonly: 'Read-only. Writes are blocked.' }[mode];
     if (badge) {
@@ -80,11 +94,12 @@
     if (!window.firebase) { S.error = 'Firebase failed to load. Check your connection and reload.'; notify(); return; }
     firebase.initializeApp(cfg.firebase);
     database = firebase.database();
+    database.ref(MG_PATH).on('value', snap => { const v = snap.val() || {}; S.mg = { shots: v.shots | 0, hits: v.hits | 0 }; }, () => {});
     database.ref(cfg.dataPath).on('value', snap => apply(snap.val()), err => {
       console.error('Firebase read failed', err);
       S.error = 'Could not read the database: ' + err.message; notify();
     });
   }
 
-  R.data = { mode, init, subscribe, commit, save, applyLocal: apply };
+  R.data = { mode, init, subscribe, commit, save, applyLocal: apply, addMinigameShots };
 })(window.Ruski);

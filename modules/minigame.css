@@ -46,7 +46,27 @@
 
 .rmg-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
+
+/* Ginobes: shooting off-hand, so the table goes blurry and the aim arc disappears */
+.rmg-host .rmg-canvas{transition:filter .4s var(--ease-out,ease-out)}
+.rmg-offhand .rmg-canvas{filter:blur(3px) saturate(.85)}
+
+/* you yacked: the room lurches and goes a little green */
+.rmg-yacking .rmg-canvas{animation:rmg-queasy 1.6s var(--ease-io,ease-in-out)}
+.rmg-yacking::after{content:"";position:absolute;inset:0;pointer-events:none;background:var(--yack,#8C8A3E);mix-blend-mode:multiply;animation:rmg-green 1.6s ease-out forwards}
+@keyframes rmg-queasy{0%,100%{transform:none}15%{transform:rotate(-2.5deg) scale(1.04)}35%{transform:rotate(2deg) scale(1.06) skewX(3deg)}55%{transform:rotate(-1.5deg) scale(1.03)}75%{transform:rotate(1deg)}}
+@keyframes rmg-green{0%{opacity:0}20%{opacity:.45}100%{opacity:0}}
+
 @media (prefers-reduced-motion:reduce){
   .rmg-msg,.rmg-btn{transition:none}
+  .rmg-yacking .rmg-canvas{animation:none}
   .rmg-btn:active{transform:none}
+}
+
+/* narrow heroes: the far rack sits right under the HUD, so turn messages move to a chip at the bottom
+   (where the weekly caption was; the caption hides while the game is live) */
+@media (max-width:600px){
+  .rmg-msg{top:auto;bottom:var(--s3,12px);left:var(--s3,12px);right:auto;max-width:calc(50% - 36px);padding:6px 10px;
+    border-radius:var(--r-m,8px);background:var(--rmg-chip,rgba(6,16,10,.85));font-size:12px;line-height:1.25}
+  .rmg-caption{display:none}
 }

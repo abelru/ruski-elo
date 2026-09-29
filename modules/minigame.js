@@ -7,12 +7,19 @@
  *   window.RuskiMiniGame.throwBall({aim, power})   -> aim -1..1, power 0..1 (used by tests / keyboard parity)
  *   window.RuskiMiniGame.getState()
  *
+ * You vs the CPU, Ruski rules: 2 shots a turn, rerack to a 3-2-1 triangle at 6 cups and a stoplight at 3,
+ * two hits in one turn makes the other side yack and lose a shot, a shot off the back of the table is
+ * Ginobes (off-hand next turn), one redemption shot, overtime at 3 cups, then double overtime (full rack).
+ *
  * opts (all optional):
  *   caption   {value, label}     small stat drawn bottom-left (replaces the old .cap block)
  *   palette   {cup, rim, beer, ball, table, bg}   CSS colour strings; default = read from CSS variables
  *   css       true|false         auto-inject minigame.css next to this script (default true if script src known)
- *   storageKey string            localStorage key for best score (default 'ruski.minigame.best')
- *   onGameOver(result)           result = {shots}
+ *   storageKey string            localStorage key for your W-L record vs the CPU (default 'ruski.minigame.record')
+ *   cpuHitRate  number | () => number   CPU's chance to hit a shot (default 0.28; the host derives it from real games)
+ *   onGameOver(result)           result = {won, record: {w, l}, shots}
+ *   onStats({shots, hits})       your regular (not off-hand) shots since the last report; sent at game end,
+ *                                on "Rack 'em" and when the game is unmounted, so the host can keep a running hit rate
  *   onFail(err)                  called when THREE/WebGL is unavailable (host keeps the static hero)
  *
  * Uses global THREE r128 (loads it from cdnjs if missing). No physics library; hand-rolled ballistic
@@ -41,9 +48,13 @@
     SPACING: 0.86, ROW_Z0: -4.3, ROW_DZ: 0.745,
     DT: 1 / 120, MIN_PULL: 14
   };
+  var MIRROR = C.Z_NEAR + C.Z_FAR;                      // z' = MIRROR - z flips the far half of the table onto the near half
+  C.ORIGIN = { x: 0, y: 0.75, z: 4.9 };                 // you throw from just behind your own rack
+  var CPU_ORIGIN = { x: 1.55, y: 1.35, z: -5.75 };      // the little guy's throwing hand
+  var CPU_P = 0.28;
+  var REC_KEY = 'ruski.minigame.record';
   /* the little guy stands behind the far right corner of the table so he never overlaps the HUD and cups never hide him */
   var FIG = { x: 2.05, y: 0.15, z: -6.0, s: 1.2 };
-  var BEST_KEY = 'ruski.minigame.best';
 
   /* ---------------------------------------------------------------- helpers */
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -86,10 +97,22 @@
     return fallback;
   }
 
-  function readBest(key) {
-    try { var v = parseInt(localStorage.getItem(key), 10); return v > 0 ? v : 0; } catch (e) { return 0; }
+
+  /* rack formations. kind: 'full' 4-3-2-1, 'tri6' 3-2-1, 'stop3' stoplight (a straight line pointing at the shooter), 'ot3' 2-1 */
+  function slots(side, kind) {
+    var out = [], rows = { full: [4, 3, 2, 1], tri6: [3, 2, 1], ot3: [2, 1] }[kind];
+    if (kind === 'stop3') for (var i = 0; i < 3; i++) out.push({ x: 0, z: C.ROW_Z0 + i * C.SPACING });
+    else rows.forEach(function (cnt, r) {
+      for (var k = 0; k < cnt; k++) out.push({ x: (k - (cnt - 1) / 2) * C.SPACING, z: C.ROW_Z0 + r * C.ROW_DZ });
+    });
+    if (side === 'me') out.forEach(function (p) { p.x = -p.x; p.z = MIRROR - p.z; });
+    return out;
   }
-  function writeBest(key, n) { try { localStorage.setItem(key, String(n)); } catch (e) { /* private mode */ } }
+  function placeCup(c) {
+    c.mesh.position.set(c.x, 0, c.z);
+    c.shadow.position.set(c.x + 0.05, 0.004, c.z + 0.05);
+  }
+  function other(side) { return side === 'me' ? 'cpu' : 'me'; }
 
   /* ---------------------------------------------------------------- build DOM + scene */
   function build(T, host, opts) {
@@ -104,7 +127,8 @@
       decal: tokenColor(host, P.decal, ['--rmg-decal'], '#1FA34A'),
       figure: tokenColor(host, P.figure, ['--rmg-figure'], '#9DB0A6'),   // neutral toy/mannequin grey-green, never a skin tone
       shirt: tokenColor(host, P.shirt, ['--rmg-shirt'], '#F4F4EF'),
-      bg: tokenColor(host, P.bg, ['--rmg-bg', '--bilge'], '#0A181E')
+      bg: tokenColor(host, P.bg, ['--rmg-bg', '--bilge'], '#0A181E'),
+      yack: tokenColor(host, P.yack, ['--rmg-yack', '--yack'], '#8C8A3E')
     };
 
     var renderer = new T.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'low-power' });
@@ -155,16 +179,17 @@
     var ringGeo = new T.RingGeometry(0.22, 0.44, 14);
     var ringMat = new T.MeshBasicMaterial({ color: new T.Color(colors.beer), transparent: true, opacity: 0.3, side: T.DoubleSide, depthWrite: false });
 
-    var cups = [], rows = [4, 3, 2, 1];
-    rows.forEach(function (cnt, r) {
-      for (var k = 0; k < cnt; k++) {
-        var x = (k - (cnt - 1) / 2) * C.SPACING, z = C.ROW_Z0 + r * C.ROW_DZ;
-        var grp = new T.Mesh(cupGeo, cupMat); grp.position.set(x, 0, z); scene.add(grp);
-        var sh = new T.Mesh(shGeo, shMat); sh.rotation.x = -Math.PI / 2; sh.position.set(x + 0.05, 0.004, z + 0.05); scene.add(sh);
-        var ring = new T.Mesh(ringGeo, ringMat); ring.rotation.x = -Math.PI / 2; ring.position.set(x, 0.006, z); ring.visible = false; scene.add(ring);
-        cups.push({ x: x, z: z, mesh: grp, shadow: sh, ring: ring, state: 'up', t: 0, wob: 0 });
-      }
-    });                                                                                             // <= 20 draws visible at once
+    /* 10 cups a side: 'cpu' is the far rack (you shoot at it), 'me' is the near rack (the CPU shoots at it) */
+    var cups = [];
+    ['cpu', 'me'].forEach(function (side) {
+      slots(side, 'full').forEach(function (p) {
+        var grp = new T.Mesh(cupGeo, cupMat); scene.add(grp);
+        var sh = new T.Mesh(shGeo, shMat); sh.rotation.x = -Math.PI / 2; scene.add(sh);
+        var ring = new T.Mesh(ringGeo, ringMat); ring.rotation.x = -Math.PI / 2; ring.visible = false; scene.add(ring);
+        var c = { side: side, x: p.x, z: p.z, tx: p.x, tz: p.z, mesh: grp, shadow: sh, ring: ring, state: 'up', t: 0, wob: 0 };
+        placeCup(c); cups.push(c);
+      });
+    });                                                                                             // <= 40 draws with both racks up
 
     var ballMesh = new T.Mesh(new T.SphereGeometry(C.BR, 12, 9), new T.MeshLambertMaterial({ color: new T.Color(colors.ball), emissive: new T.Color(colors.ball), emissiveIntensity: 0.5 }));
     var outMat = new T.MeshBasicMaterial({ color: new T.Color(colors.decal).multiplyScalar(0.35), side: T.BackSide });   // dark outline so a white ball reads on the white table
@@ -182,7 +207,7 @@
     var fTex = new T.CanvasTexture(fc);
     var fMat = new T.MeshBasicMaterial({ map: fTex, transparent: true, opacity: 0.92, depthWrite: false });
     var fGeo = new T.PlaneGeometry(1.7, 1.7);
-    var decal = new T.Mesh(fGeo, fMat); decal.rotation.x = -Math.PI / 2; decal.position.set(0, 0.005, 0.7); scene.add(decal);
+    var decal = new T.Mesh(fGeo, fMat); decal.rotation.x = -Math.PI / 2; decal.position.set(0, 0.005, MIRROR / 2); scene.add(decal);
 
     /* little guy behind the rack: primitives only, ~9 draws. Neutral grey-green head/hands, white tee, no hair. */
     var shirtMat = new T.MeshLambertMaterial({ color: new T.Color(colors.shirt) });
@@ -229,7 +254,7 @@
     root.appendChild(zone);
 
     var hud = el('dl', 'rmg-hud'), vals = {};
-    [['shots', 'Shots'], ['cups', 'Cups'], ['streak', 'Streak'], ['best', 'Best']].forEach(function (d) {
+    [['me', 'Your cups'], ['cpu', 'CPU cups'], ['shots', 'Shots'], ['rec', 'Record']].forEach(function (d) {
       var box = el('div', 'rmg-stat'), dt = el('dt', 'rmg-k', d[1]), dd = el('dd', 'rmg-v', '0');
       box.appendChild(dt); box.appendChild(dd); hud.appendChild(box); vals[d[0]] = dd;
     });
@@ -242,7 +267,7 @@
       root.appendChild(cap);
     }
     var coarse = false; try { coarse = window.matchMedia('(pointer: coarse)').matches; } catch (e) { /* ignore */ }
-    var msg = el('p', 'rmg-msg', coarse ? 'Pull back and let go' : 'Drag back and release');
+    var msg = el('p', 'rmg-msg', (coarse ? 'Pull back and let go' : 'Drag back and release') + ' · you vs the CPU');
     root.appendChild(msg);
     var resetBtn = el('button', 'rmg-btn rmg-reset', "Rack 'em"); resetBtn.type = 'button';
     resetBtn.setAttribute('aria-label', "Rack 'em: restart the game");
@@ -261,7 +286,7 @@
     return {
       T: T, renderer: renderer, canvas: canvas, scene: scene, cam: cam, cups: cups, ballMesh: ballMesh, ballShadow: ballShadow,
       figure: figure,
-      splash: { pts: splash, geo: spGeo, pos: spPos, vel: spVel, life: spLife, n: SP },
+      splash: { pts: splash, geo: spGeo, pos: spPos, vel: spVel, life: spLife, n: SP, mat: spMat, beer: new T.Color(colors.beer), yack: new T.Color(colors.yack) },
       aim: { pts: aim, geo: aimGeo, pos: aimPos, n: AIMN },
       dom: { root: root, zone: zone, vals: vals, msg: msg, reset: resetBtn, over: over, overSub: overSub, overTitle: overTitle, again: again, live: live },
       disposables: [cupGeo, cupMat, ringGeo, ringMat, shGeo, shMat, shTex, dotTex, spGeo, spMat, aimGeo, aimMat, table.geometry, table.material, edge.geometry, edge.material,
@@ -275,80 +300,115 @@
     var G = this;
     G.host = host; G.opts = opts; G.p = parts; G.T = parts.T;
     DOWN = new parts.T.Vector3(); AIM = new parts.T.Vector3();
-    G.bestKey = opts.storageKey || BEST_KEY;
-    G.best = readBest(G.bestKey);
-    G.shots = 0; G.sunk = 0; G.streak = 0; G.over = false;
-    G.ball = { active: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, t: 0, rest: 0, rim: false };
+    G.recKey = opts.storageKey || REC_KEY;
+    G.rec = readRecord(G.recKey);
+    G.ball = { active: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, t: 0, rest: 0, rim: false, touched: false, side: 'me' };
     G.drag = null; G.kb = { on: false, aim: 0, power: 0.62 };
     G.raf = 0; G.running = false; G.inView = true; G.last = 0; G.acc = 0; G.clock = 0; G.sway = 1;
     G.timers = []; G.msgTimer = 0; G.firstThrow = false; G.dirty = true;
     G.listeners = [];
-    G.hitRimThisShot = false;
+    G.newGame();
   }
   var GP = Game.prototype;
 
+  function readRecord(key) {
+    try { var r = JSON.parse(localStorage.getItem(key)); if (r && r.w >= 0 && r.l >= 0) return { w: r.w | 0, l: r.l | 0 }; } catch (e) { /* ignore */ }
+    return { w: 0, l: 0 };
+  }
+  function writeRecord(key, r) { try { localStorage.setItem(key, JSON.stringify(r)); } catch (e) { /* private mode */ } }
+
   GP.on = function (target, type, fn, o) { target.addEventListener(type, fn, o); this.listeners.push([target, type, fn, o]); };
-  GP.later = function (fn, ms) { var G = this, id = setTimeout(function () { fn(); }, ms); G.timers.push(id); return id; };
+  GP.later = function (fn, ms) { var G = this, id = setTimeout(function () { if (!G.dead) fn(); }, ms); G.timers.push(id); return id; };
 
   GP.say = function (text, sticky) {
     var G = this, m = G.p.dom.msg;
     m.textContent = text; m.classList.add('rmg-show');
     G.p.dom.live.textContent = text;
     clearTimeout(G.msgTimer);
-    if (!sticky) G.msgTimer = setTimeout(function () { m.classList.remove('rmg-show'); }, 1500);
+    if (!sticky) G.msgTimer = setTimeout(function () { m.classList.remove('rmg-show'); }, 2200);
   };
 
+  GP.upCount = function (side) { return this.p.cups.filter(function (c) { return c.side === side && c.state === 'up'; }).length; };
+
   GP.hud = function () {
-    var v = this.p.dom.vals;
-    v.shots.textContent = this.shots; v.cups.textContent = this.sunk + '/10';
-    v.streak.textContent = this.streak; v.best.textContent = this.best ? this.best : '–';
+    var G = this, v = G.p.dom.vals;
+    v.me.textContent = G.upCount('me'); v.cpu.textContent = G.upCount('cpu');
+    v.shots.textContent = G.side === 'me' && !G.over ? G.shotsLeft + (G.offhand ? ' lefty' : '') : '–';
+    v.rec.textContent = G.rec.w + '-' + G.rec.l;
+  };
+
+  /* fresh game state + both racks back to 4-3-2-1 */
+  GP.newGame = function () {
+    var G = this;
+    G.over = false; G.phase = 'main'; G.ot = 0; G.winner = null; G.shots = 0;
+    G.stat = G.stat || { shots: 0, hits: 0 };
+    G.penalty = { me: 0, cpu: 0 }; G.ginobes = { me: false, cpu: false }; G.racked = { me: {}, cpu: {} };
+    G.side = 'me'; G.shotsLeft = 2; G.turnShots = 2; G.turnHits = 0; G.offhand = false; G.wait = false;
+    G.chug = null; G.yack = null; G.throwPose = null;
+    G.setRack('me', 'full', true); G.setRack('cpu', 'full', true);
+  };
+
+  /* put a side's cups into a formation. 'full'/'ot3' reset the rack; 'tri6'/'stop3' rerack only the standing cups */
+  GP.setRack = function (side, kind, instant) {
+    var G = this, pos = slots(side, kind), mine = G.p.cups.filter(function (c) { return c.side === side; });
+    var fresh = kind === 'full' || kind === 'ot3';
+    if (fresh) mine.forEach(function (c, i) {
+      c.ring.visible = false; c.t = 0; c.wob = 0; c.mesh.scale.set(1, 1, 1); c.mesh.rotation.z = 0;
+      c.state = i < pos.length ? 'up' : 'gone'; c.mesh.visible = c.shadow.visible = c.state === 'up';
+    });
+    var up = mine.filter(function (c) { return c.state === 'up'; });
+    /* back row first on both, so cups slide the shortest way */
+    var far = side === 'cpu' ? 1 : -1;
+    up.sort(function (a, b) { return far * (a.z - b.z) || a.x - b.x; });
+    pos.sort(function (a, b) { return far * (a.z - b.z) || a.x - b.x; });
+    up.forEach(function (c, i) { c.tx = pos[i].x; c.tz = pos[i].z; if (instant) { c.x = c.tx; c.z = c.tz; placeCup(c); } });
+  };
+
+  /* hand the host this visit's shots so far, then start counting again */
+  GP.flushStats = function () {
+    var G = this, st = G.stat;
+    if (!st || !st.shots || typeof G.opts.onStats !== 'function') return;
+    G.stat = { shots: 0, hits: 0 };
+    try { G.opts.onStats({ shots: st.shots, hits: st.hits }); } catch (e) { console.warn(e); }
   };
 
   GP.reset = function () {
     var G = this;
+    G.flushStats();
     G.timers.forEach(clearTimeout); G.timers = [];
-    G.p.cups.forEach(function (c) {
-      c.state = 'up'; c.t = 0; c.wob = 0;
-      c.mesh.visible = true; c.shadow.visible = true; c.ring.visible = false;
-      c.mesh.scale.set(1, 1, 1); c.mesh.rotation.z = 0;
-    });
-    G.chug = null; G.p.figure.held.visible = false;
-    G.shots = 0; G.sunk = 0; G.streak = 0; G.over = false; G.ball.active = false; G.drag = null; G.kb.on = false;
-    G.p.dom.over.hidden = true;
+    G.newGame();
+    G.p.figure.held.visible = false;
+    G.ball.active = false; G.drag = null; G.kb.on = false;
+    G.p.dom.over.hidden = true; G.p.dom.root.classList.remove('rmg-offhand', 'rmg-yacking');
     for (var i = 0; i < G.p.splash.n; i++) { G.p.splash.life[i] = 0; G.p.splash.pos[i * 3 + 1] = -10; }
     G.p.splash.geo.attributes.position.needsUpdate = true;
-    G.hud(); G.say(G.firstThrow ? 'Racked. Your throw.' : G.p.dom.msg.textContent, !G.firstThrow);
+    G.hud(); G.say(G.firstThrow ? 'Racked. Your throw, 2 shots.' : G.p.dom.msg.textContent, !G.firstThrow);
     G.kick();
   };
 
-  /* launch velocity from normalised aim (-1..1) and power (0..1) */
+  /* player launch velocity from normalised aim (-1..1) and power (0..1) */
   function launchVel(aim, power) {
     var yaw = aim * C.MAX_YAW, range = lerp(C.R_MIN, C.R_MAX, power);
     var v = Math.sqrt(range * C.G / Math.sin(2 * C.ELEV)), h = v * Math.cos(C.ELEV);
     return { vx: h * Math.sin(yaw), vy: v * Math.sin(C.ELEV), vz: -h * Math.cos(yaw) };
   }
+  /* velocity that drops the ball onto point (tx, ty, tz) from origin o at the fixed launch angle */
+  function velTo(o, tx, ty, tz) {
+    var dx = tx - o.x, dz = tz - o.z, D = Math.sqrt(dx * dx + dz * dz), cs = Math.cos(C.ELEV);
+    var den = 2 * cs * cs * (D * Math.tan(C.ELEV) + (o.y - ty));
+    var v = Math.sqrt(C.G * D * D / Math.max(den, 1e-3));
+    return { vx: v * cs * dx / D, vy: v * Math.sin(C.ELEV), vz: v * cs * dz / D };
+  }
 
-  GP.throwBall = function (aim, power) {
-    var G = this, b = G.ball;
-    if (G.over || b.active) return false;
-    aim = clamp(+aim || 0, -1, 1); power = clamp(+power || 0, 0, 1);
-    var v = launchVel(aim, power);
-    b.active = true; b.x = C.ORIGIN.x; b.y = C.ORIGIN.y; b.z = C.ORIGIN.z;
-    b.vx = v.vx; b.vy = v.vy; b.vz = v.vz; b.t = 0; b.rest = 0; b.rim = false;
-    G.shots++; G.hud();
-    if (!G.firstThrow) { G.firstThrow = true; G.p.dom.msg.classList.remove('rmg-show'); }
-    G.drag = null; G.kb.on = false; G.acc = 0;
-    G.kick();
-    return true;
-  };
+  GP.canThrow = function () { var G = this; return !G.over && !G.wait && G.side === 'me' && G.shotsLeft > 0 && !G.ball.active; };
 
-  /* test hook: simulate a shot without touching game state; returns true if it would sink a cup */
-  GP.probe = function (aim, power) {
-    var G = this, b = G.ball;
-    if (b.active) return null;
-    var v = launchVel(clamp(aim, -1, 1), clamp(power, 0, 1));
+  /* put the ball in the air for `side`. dry = simulate only, returns true if it would sink */
+  GP.fire = function (side, v, dry) {
+    var G = this, b = G.ball, o = side === 'me' ? C.ORIGIN : CPU_ORIGIN;
+    b.active = true; b.side = side; b.x = o.x; b.y = o.y; b.z = o.z;
+    b.vx = v.vx; b.vy = v.vy; b.vz = v.vz; b.t = 0; b.rest = 0; b.rim = false; b.touched = false; b.maxBack = 0;
+    if (!dry) return true;
     var wob = G.p.cups.map(function (c) { return c.wob; });
-    b.active = true; b.x = C.ORIGIN.x; b.y = C.ORIGIN.y; b.z = C.ORIGIN.z; b.vx = v.vx; b.vy = v.vy; b.vz = v.vz; b.t = 0; b.rest = 0; b.rim = false;
     G.dry = true;
     for (var i = 0; i < 1000 && b.active; i++) G.step(C.DT);
     var hit = G.dry === 'sunk'; G.dry = false; b.active = false;
@@ -356,41 +416,156 @@
     return hit;
   };
 
-  GP.endShot = function (sunkCup) {
-    var G = this, b = G.ball;
-    b.active = false;
-    if (sunkCup) {
-      G.streak++;
-      var left = 10 - G.sunk;
-      if (left === 0) { G.say('Rack cleared in ' + G.shots + (G.shots === 1 ? ' shot' : ' shots')); G.finish(); }
-      else G.say(G.streak > 1 ? 'Splash! ' + G.streak + ' in a row, ' + left + ' to go' : 'Splash! ' + left + ' to go');
-    } else {
-      G.streak = 0; G.say(b.rim ? 'Rim out' : 'Miss');
+  GP.throwBall = function (aim, power) {
+    var G = this;
+    if (!G.canThrow()) return false;
+    aim = clamp(+aim || 0, -1, 1); power = clamp(+power || 0, 0, 1);
+    if (G.offhand) { aim = clamp(aim + (Math.random() - 0.5) * 0.4, -1, 1); power = clamp(power + (Math.random() - 0.5) * 0.14, 0, 1); }   // lefty: wobbly release
+    G.fire('me', launchVel(aim, power));
+    G.shots++; G.shotsLeft--; G.hud();
+    G.ball.counts = !G.offhand;   // off-hand shots are handicapped, so they don't count toward the hit rate
+    if (!G.firstThrow) { G.firstThrow = true; G.p.dom.msg.classList.remove('rmg-show'); }
+    G.drag = null; G.kb.on = false; G.acc = 0;
+    G.kick();
+    return true;
+  };
+
+  /* test hook: would this player shot sink a cup? (no state change) */
+  GP.probe = function (aim, power) {
+    if (this.ball.active) return null;
+    return this.fire('me', launchVel(clamp(aim, -1, 1), clamp(power, 0, 1)), true);
+  };
+
+  /* CPU picks a shot that hits or misses on purpose (decided by its hit rate), found by simulating throws at a standing cup */
+  GP.cpuPickShot = function (wantHit) {
+    var G = this, targets = G.p.cups.filter(function (c) { return c.side === 'me' && c.state === 'up'; }), v = null;
+    for (var i = 0; i < 70; i++) {
+      var c = targets[(Math.random() * targets.length) | 0], j = wantHit ? 0.05 + 0.1 * (i / 70) : 0.32 + Math.random() * 0.4;
+      var a = Math.random() * 6.283, long = !wantHit && Math.random() < 0.05 ? 3.5 : 0;   // now and then a miss sails off the back: Ginobes
+      v = velTo(CPU_ORIGIN, c.x + Math.cos(a) * j, C.RIM + 0.05, c.z + Math.sin(a) * j + long);
+      if (G.fire('cpu', v, true) === wantHit) return v;
     }
+    return v;
+  };
+
+  GP.cpuShoot = function () {
+    var G = this;
+    if (G.over || G.side !== 'cpu' || G.shotsLeft <= 0) return;
+    if (G.chug || G.yack || G.ball.active) { G.later(function () { G.cpuShoot(); }, 300); return; }
+    var rate = typeof G.opts.cpuHitRate === 'function' ? G.opts.cpuHitRate() : G.opts.cpuHitRate;   // a function so it follows live data
+    var p = clamp(+rate || CPU_P, 0.05, 0.9) * (G.offhand ? 0.5 : 1);
+    var v = G.cpuPickShot(Math.random() < p);
+    G.throwPose = { t: 0 }; G.kick();
+    G.later(function () { G.fire('cpu', v); G.shotsLeft--; G.hud(); G.kick(); }, reduced() ? 150 : 380);
+  };
+
+  GP.startTurn = function (side, shots) {
+    var G = this;
+    if (G.over) return;
+    G.side = side; G.turnHits = 0; G.wait = false;
+    var n = shots || Math.max(1, 2 - G.penalty[side]); G.penalty[side] = 0;
+    G.shotsLeft = n; G.turnShots = n;
+    G.offhand = G.ginobes[side]; G.ginobes[side] = false;
+    G.p.dom.root.classList.toggle('rmg-offhand', side === 'me' && G.offhand);
+    var redo = G.phase === 'redemption', lefty = G.offhand ? ' Off-hand (Ginobes).' : '';
+    if (side === 'me') G.say(redo ? 'Redemption: one shot to stay alive.' : 'Your turn: ' + n + (n > 1 ? ' shots.' : ' shot.') + lefty, redo);
+    else { G.say(redo ? 'CPU gets one redemption shot…' : 'CPU\'s turn: ' + n + (n > 1 ? ' shots.' : ' shot.') + lefty); G.later(function () { G.cpuShoot(); }, 1100); }
     G.hud(); G.kick();
   };
 
-  GP.finish = function () {
-    var G = this;
-    G.over = true;
-    var isBest = !G.best || G.shots < G.best;
-    if (isBest) { G.best = G.shots; writeBest(G.bestKey, G.best); }
-    G.hud();
-    G.later(function () {
-      var d = G.p.dom;
-      d.overTitle.textContent = isBest ? 'New best' : 'Rack cleared';
-      d.overSub.textContent = 'Cleared in ' + G.shots + (G.shots === 1 ? ' shot' : ' shots') + (isBest ? '' : '. Best is ' + G.best + '.');
-      d.over.hidden = false; d.again.focus({ preventScroll: true });
-      G.kick();
-    }, 750);
-    if (typeof G.opts.onGameOver === 'function') { try { G.opts.onGameOver({ shots: G.shots }); } catch (e) { console.warn(e); } }
+  /* rerack the side just shot at: 3-2-1 triangle at 6 cups, stoplight at 3 (main rack only) */
+  GP.maybeRerack = function (side) {
+    var G = this, n = G.upCount(side);
+    if (G.ot === 1) return '';
+    if (n === 6 && !G.racked[side].tri) { G.racked[side].tri = true; G.setRack(side, 'tri6'); return ' Rerack: triangle.'; }
+    if (n === 3 && !G.racked[side].stop) { G.racked[side].stop = true; G.setRack(side, 'stop3'); return ' Rerack: stoplight.'; }
+    return '';
   };
 
-  /* the little guy grabs a cup and chugs it: lift, hold, lower, then wipe (or cheer on streaks / the last cup) */
+  GP.endShot = function (sunkCup) {
+    var G = this, b = G.ball, shooter = b.side, target = other(shooter), you = shooter === 'me';
+    b.active = false; G.wait = true;
+    var ginobes = !sunkCup && !b.touched && (you ? b.maxBack < C.Z_FAR : b.maxBack > C.Z_NEAR);
+    if (you && b.counts) { G.stat.shots++; if (sunkCup) G.stat.hits++; }
+    if (ginobes) G.ginobes[shooter] = true;
+
+    if (G.phase === 'redemption') {
+      if (sunkCup && G.upCount(target) === 0) {
+        G.say(you ? 'You hit it! Overtime.' : 'CPU hit its redemption. Overtime.', true);
+        G.later(function () { G.overtime(shooter); }, 1400);
+      } else G.later(function () { G.finish(G.winner); }, sunkCup ? 1200 : 700);
+      G.hud(); G.kick(); return;
+    }
+
+    var note = '';
+    if (sunkCup) {
+      G.turnHits++;
+      if (G.upCount(target) === 0) {   // rack cleared: the other side gets one redemption shot
+        G.winner = shooter; G.phase = 'redemption';
+        G.say(you ? 'Rack cleared! CPU gets one redemption shot.' : 'CPU cleared your rack. One redemption shot.', true);
+        G.hud(); G.later(function () { G.startTurn(target, 1); }, 1500); G.kick(); return;
+      }
+      note = G.maybeRerack(target);
+      G.say((you ? 'Splash! ' : 'CPU hits. Drink. ') + G.upCount(target) + ' left.' + note);
+    } else G.say(ginobes ? (you ? 'Ginobes! Off the back. Lefty next turn.' : 'CPU Ginobes! Off-hand next turn.') : (b.rim ? 'Rim out.' : (you ? 'Miss.' : 'CPU misses.')));
+
+    G.hud(); G.kick();
+    if (G.shotsLeft > 0) { G.later(function () { if (shooter === 'cpu') G.cpuShoot(); else { G.wait = false; G.kick(); } }, you ? 450 : 900); return; }
+
+    /* turn over. Two hits in one turn: the other side yacks and loses a shot */
+    var delay = 1200;
+    if (G.turnHits >= 2 && G.turnShots >= 2) {
+      G.penalty[target] = 1; delay = 2600;
+      G.later(function () { G.doYack(target); }, 700);
+    }
+    G.later(function () { G.startTurn(target); }, delay);
+  };
+
+  GP.doYack = function (side) {
+    var G = this;
+    if (side === 'cpu') { G.yack = { t: 0, spewed: false, dur: reduced() ? 1.2 : 2.0 }; G.say('Two in a row! CPU yacks and loses a shot.'); }
+    else {
+      var r = G.p.dom.root; r.classList.remove('rmg-yacking'); void r.offsetWidth; r.classList.add('rmg-yacking');
+      G.later(function () { r.classList.remove('rmg-yacking'); }, 1700);
+      G.say('CPU hit two in a row. You yack and lose a shot.');
+    }
+    G.kick();
+  };
+
+  GP.overtime = function (redeemer) {
+    var G = this;
+    G.ot++; G.phase = 'main'; G.winner = null; G.racked = { me: {}, cpu: {} };
+    var kind = G.ot === 1 ? 'ot3' : 'full';   // overtime is 3 cups a side, double overtime is a full rack again
+    G.setRack('me', kind, true); G.setRack('cpu', kind, true);
+    G.say(G.ot === 1 ? 'Overtime: 3 cups each.' : 'Double overtime: full rack.');
+    G.later(function () { G.startTurn(redeemer); }, 1300);
+    G.hud(); G.kick();
+  };
+
+  GP.finish = function (winner) {
+    var G = this, won = winner === 'me';
+    G.over = true; G.phase = 'over'; G.wait = true;
+    G.p.dom.root.classList.remove('rmg-offhand');
+    if (won) G.rec.w++; else G.rec.l++;
+    writeRecord(G.recKey, G.rec);
+    G.hud();
+    G.say(won ? 'You beat the CPU!' : 'CPU wins.', true);
+    G.later(function () {
+      var d = G.p.dom;
+      d.overTitle.textContent = won ? 'You beat the CPU' : 'CPU wins';
+      d.overSub.textContent = 'Record ' + G.rec.w + '-' + G.rec.l + (won ? '. Nobody tell the CPU.' : '. Run it back.');
+      d.over.hidden = false; d.again.focus({ preventScroll: true });
+      G.kick();
+    }, 900);
+    G.flushStats();
+    if (typeof G.opts.onGameOver === 'function') { try { G.opts.onGameOver({ won: won, record: { w: G.rec.w, l: G.rec.l }, shots: G.shots }); } catch (e) { console.warn(e); } }
+  };
+
+  /* the little guy grabs a cup and chugs it: lift, hold, lower, then wipe (or cheer on the last cup) */
   GP.startChug = function () {
-    var G = this, red = reduced(), last = G.sunk >= 10;
+    var G = this, red = reduced(), last = G.upCount('cpu') === 0;
     G.p.figure.held.visible = true;
-    G.chug = { t: 0, red: red, dur: red ? 1.3 : 3.0, kind: (last || G.streak >= 1) ? 'cheer' : 'wipe' };
+    G.chug = { t: 0, red: red, dur: red ? 1.3 : 3.0, kind: last ? 'cheer' : 'wipe' };
     G.kick();
   };
 
@@ -398,7 +573,7 @@
   function ss(a, b, t) { t = clamp((t - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
 
   GP.poseFigure = function (dt) {
-    var G = this, F = G.p.figure, ch = G.chug, rt = 0.05, lt = 0.05, tilt = 0, lift = 0, cupOn = false, wave = 0, m = 0;
+    var G = this, F = G.p.figure, ch = G.chug, rt = 0.05, lt = 0.05, tilt = 0, lift = 0, cupOn = false, wave = 0, m = 0, lean = 0;
     var idle = reduced() ? 0 : 1;
     if (ch) {
       ch.t += dt; var t = ch.t;
@@ -417,6 +592,21 @@
         if (t >= ch.dur) ch = G.chug = null;
       }
     }
+    /* throw: wind up overhead, snap forward */
+    var tp = G.throwPose;
+    if (tp && !ch) {
+      tp.t += dt;
+      rt = 0.05 + 2.5 * ss(0, 0.28, tp.t) - 1.6 * ss(0.3, 0.45, tp.t) - 0.85 * ss(0.5, 0.9, tp.t);
+      if (tp.t > 0.95) G.throwPose = null;
+    }
+    /* yack: double over, hands to stomach, spew toward the floor */
+    var yk = G.yack;
+    if (yk) {
+      yk.t += dt; var y = ss(0, 0.35, yk.t) * (1 - ss(yk.dur - 0.4, yk.dur, yk.t));
+      lean = 0.5 * y; tilt = Math.max(tilt, 0.45 * y); rt = Math.max(rt, 0.7 * y); lt = Math.max(lt, 0.7 * y);
+      if (!yk.spewed && yk.t > 0.45) { yk.spewed = true; G.emitYack(); }
+      if (yk.t >= yk.dur) G.yack = null;
+    }
     if (!cupOn) F.held.visible = false;
     var sway = idle * Math.sin(G.clock * 1.3);
     /* right arm: blend from a forward swing (angle rt) to pointing shoulder->mouth (m = 1) */
@@ -426,6 +616,7 @@
     F.armL.rotation.x = -(lt - idle * 0.03 * sway);
     F.armL.rotation.z = -0.08 + wave;
     F.head.rotation.x = tilt + idle * 0.02 * Math.sin(G.clock * 0.9);
+    F.root.rotation.x = lean;
     F.root.rotation.z = idle * 0.025 * Math.sin(G.clock * 0.8);
     F.root.scale.y = FIG.s * (1 + idle * 0.012 * Math.sin(G.clock * 2.2));
     F.root.position.y = FIG.y + lift;
@@ -433,6 +624,7 @@
 
   GP.emitSplash = function (x, z) {
     var S = this.p.splash;
+    S.mat.color.copy(S.beer);
     for (var i = 0; i < S.n; i++) {
       var a = Math.random() * 6.283, sp = 0.4 + Math.random() * 1.1;
       S.pos[i * 3] = x + Math.cos(a) * 0.12; S.pos[i * 3 + 1] = C.RIM + 0.05; S.pos[i * 3 + 2] = z + Math.sin(a) * 0.12;
@@ -440,17 +632,30 @@
       S.life[i] = 0.55 + Math.random() * 0.35;
     }
   };
+  /* same pooled particles, yack-coloured, pouring from the little guy's mouth to the floor */
+  GP.emitYack = function () {
+    var S = this.p.splash, hx = FIG.x, hy = FIG.y + 1.75 * FIG.s, hz = FIG.z + 0.45;
+    S.mat.color.copy(S.yack);
+    for (var i = 0; i < S.n; i++) {
+      S.pos[i * 3] = hx + (Math.random() - 0.5) * 0.12; S.pos[i * 3 + 1] = hy - Math.random() * 0.2; S.pos[i * 3 + 2] = hz;
+      S.vel[i * 3] = (Math.random() - 0.5) * 0.7; S.vel[i * 3 + 1] = 0.6 + Math.random() * 1.2; S.vel[i * 3 + 2] = 0.5 + Math.random() * 1.1;
+      S.life[i] = 0.7 + Math.random() * 0.6;
+    }
+    this.kick();
+  };
 
-  /* one fixed physics step */
+  /* one fixed physics step. The ball only interacts with the rack it was thrown at. */
   GP.step = function (dt) {
     var G = this, b = G.ball;
     if (!b.active) return;
     b.t += dt;
     b.vy -= C.G * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt;
+    b.maxBack = b.side === 'me' ? Math.min(b.maxBack || 0, b.z) : Math.max(b.maxBack || 0, b.z);
+    var target = other(b.side);
 
     var cups = G.p.cups;
     for (var i = 0; i < cups.length; i++) {
-      var c = cups[i]; if (c.state !== 'up') continue;
+      var c = cups[i]; if (c.state !== 'up' || c.side !== target) continue;
       var dx = b.x - c.x, dz = b.z - c.z, d = Math.sqrt(dx * dx + dz * dz);
       if (d > 1.0 || b.y > C.RIM + C.BR + 0.1) continue;
       var ux = d > 1e-4 ? dx / d : 1, uz = d > 1e-4 ? dz / d : 0;
@@ -461,7 +666,7 @@
         var nh = qx / q, ny = qy / q, nx = nh * ux, nz = nh * uz;
         b.x += nx * (min - q); b.y += ny * (min - q); b.z += nz * (min - q);
         var vn = b.vx * nx + b.vy * ny + b.vz * nz;
-        if (vn < 0) { var k = (1 + C.E_RIM) * vn; b.vx -= k * nx; b.vy -= k * ny; b.vz -= k * nz; c.wob = 1; b.rim = true; }
+        if (vn < 0) { var k = (1 + C.E_RIM) * vn; b.vx -= k * nx; b.vy -= k * ny; b.vz -= k * nz; c.wob = 1; b.rim = true; b.touched = true; }
         dx = b.x - c.x; dz = b.z - c.z; d = Math.sqrt(dx * dx + dz * dz);
         ux = d > 1e-4 ? dx / d : 1; uz = d > 1e-4 ? dz / d : 0;
       }
@@ -472,12 +677,13 @@
           if (d < r + C.BR) {
             b.x = c.x + ux * (r + C.BR); b.z = c.z + uz * (r + C.BR);
             var vr = b.vx * ux + b.vz * uz;
-            if (vr < 0) { b.vx -= (1 + C.E_WALL) * vr * ux; b.vz -= (1 + C.E_WALL) * vr * uz; c.wob = 1; }
+            if (vr < 0) { b.vx -= (1 + C.E_WALL) * vr * ux; b.vz -= (1 + C.E_WALL) * vr * uz; c.wob = 1; b.touched = true; }
           }
         } else if (b.y > 0.05) {
           if (G.dry) { G.dry = 'sunk'; b.active = false; return; }
-          c.state = 'sinking'; c.t = 0; G.sunk++;
-          G.startChug();
+          c.state = 'sinking'; c.t = 0;
+          c.ring.position.set(c.x, 0.006, c.z);
+          if (c.side === 'cpu') G.startChug();
           G.emitSplash(c.x, c.z);
           b.active = false;
           G.endShot(true);
@@ -490,7 +696,7 @@
     var onTable = Math.abs(b.x) <= C.TABLE_W / 2 + 0.02 && b.z <= C.Z_NEAR && b.z >= C.Z_FAR;
     if (onTable && b.y < C.BR && b.vy < 0) {
       b.y = C.BR; b.vy = -b.vy * C.E_TABLE; if (b.vy < 1.2) b.vy = 0;
-      b.vx *= 0.92; b.vz *= 0.92;
+      b.vx *= 0.92; b.vz *= 0.92; b.touched = true;
     }
     if (onTable && b.y <= C.BR + 0.002 && b.vy === 0) {
       var f = Math.max(0, 1 - 1.4 * dt); b.vx *= f; b.vz *= f;
@@ -502,7 +708,7 @@
   /* aim state -> {aim, power} or null */
   GP.aimState = function () {
     var G = this;
-    if (G.over || G.ball.active) return null;
+    if (!G.canThrow()) return null;
     if (G.drag && G.drag.armed) return { aim: G.drag.aim, power: G.drag.power };
     if (G.kb.on) return { aim: G.kb.aim, power: G.kb.power };
     return null;
@@ -510,18 +716,25 @@
 
   GP.needsAnim = function () {
     var G = this;
-    if (G.ball.active || G.drag || G.kb.on || G.chug) return true;
+    if (G.ball.active || G.drag || G.kb.on || G.chug || G.yack || G.throwPose) return true;
     var i, S = G.p.splash;
     for (i = 0; i < S.n; i++) if (S.life[i] > 0) return true;
-    for (i = 0; i < G.p.cups.length; i++) { var c = G.p.cups[i]; if (c.state === 'sinking' || c.wob > 0.01) return true; }
+    for (i = 0; i < G.p.cups.length; i++) {
+      var c = G.p.cups[i];
+      if (c.state === 'sinking' || c.wob > 0.01 || Math.abs(c.tx - c.x) + Math.abs(c.tz - c.z) > 0.002) return true;
+    }
     return false;
   };
 
   GP.animate = function (dt) {
     var G = this, cups = G.p.cups, i;
     G.clock += dt;
+    var slide = reduced() ? 1 : Math.min(1, dt * 9);
     for (i = 0; i < cups.length; i++) {
       var c = cups[i];
+      if (c.state === 'up' && Math.abs(c.tx - c.x) + Math.abs(c.tz - c.z) > 0.002) {   // rerack slide
+        c.x += (c.tx - c.x) * slide; c.z += (c.tz - c.z) * slide; placeCup(c);
+      }
       if (c.state === 'sinking') {
         c.t += dt; var k = Math.min(1, c.t / 0.4), e = k * k;
         c.mesh.scale.set(1 - 0.4 * e, 1 - e, 1 - 0.4 * e); c.mesh.rotation.z = 0;
@@ -543,27 +756,26 @@
     if (live || G.splashWasLive) S.geo.attributes.position.needsUpdate = true;
     G.splashWasLive = live;
 
-    /* camera: gentle sway, eased out while aiming or throwing; none when reduced motion */
+    /* camera: high enough to see both racks; gentle sway, eased out while aiming or throwing; none when reduced motion */
     var still = reduced() || G.ball.active || G.drag || G.kb.on;
     G.sway += ((still ? 0 : 1) - G.sway) * Math.min(1, dt * 4);
     var sw = reduced() ? 0 : Math.sin(G.clock * 0.5) * 0.32 * G.sway;
-    G.p.cam.position.set(sw, 3.8, 8.3); G.p.cam.lookAt(sw * 0.3, 0.2, -1.0);
+    G.p.cam.position.set(sw, 5.6, 9.4); G.p.cam.lookAt(sw * 0.3, 0, -0.6);
 
-    /* ball + shadow */
+    /* ball + shadow. Between your throws it sits in your hand; on the CPU's turn it's hidden until he throws */
     var b = G.ball, bm = G.p.ballMesh, bs = G.p.ballShadow, a = G.aimState();
-    if (b.active) { bm.position.set(b.x, b.y, b.z); }
+    if (b.active) { bm.position.set(b.x, b.y, b.z); bm.visible = true; }
     else {
       var pull = G.drag && G.drag.armed ? G.drag.power : (G.kb.on ? G.kb.power : 0);
       bm.position.set(C.ORIGIN.x, C.ORIGIN.y - 0.25 * pull, C.ORIGIN.z + 0.4 * pull);
-      bm.visible = !G.over;
+      bm.visible = G.canThrow();
     }
-    bm.visible = !G.over || b.active;
-    bs.visible = bm.visible && bm.position.z < C.Z_NEAR && Math.abs(bm.position.x) < C.TABLE_W / 2 && bm.position.y > 0;
+    bs.visible = bm.visible && bm.position.z < C.Z_NEAR && bm.position.z > C.Z_FAR && Math.abs(bm.position.x) < C.TABLE_W / 2 && bm.position.y > 0;
     bs.position.x = bm.position.x; bs.position.z = bm.position.z; bs.scale.setScalar(1 / (1 + Math.max(0, bm.position.y - C.BR) * 0.5));
 
-    /* aim arc */
+    /* aim arc (hidden when shooting lefty: you're on your own) */
     var A = G.p.aim;
-    if (a) {
+    if (a && !G.offhand) {
       var v = launchVel(a.aim, a.power), y0 = C.ORIGIN.y, T = (v.vy + Math.sqrt(v.vy * v.vy + 2 * C.G * (y0 - C.BR))) / C.G, Tshow = T * 0.72;
       for (i = 0; i < A.n; i++) {
         var t = 0.05 + (Tshow - 0.05) * (i / (A.n - 1));
@@ -606,7 +818,7 @@
     var asp = w / h;
     G.p.renderer.setSize(w, h, false);
     G.p.cam.aspect = asp;
-    G.p.cam.fov = clamp(40 * (1.5 / asp), 40, 72);   // widen on narrow heroes so the rack never crops
+    G.p.cam.fov = clamp(44 * (1.5 / asp), 44, 76);   // widen on narrow heroes so neither rack crops
     G.p.cam.updateProjectionMatrix();
     G.kick();
   };
@@ -623,7 +835,7 @@
       d.aim = clamp((d.x0 - d.x) / (mp * 0.8), -1, 1);
     }
     G.on(z, 'pointerdown', function (e) {
-      if (G.over || G.ball.active || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      if (!G.canThrow() || (e.pointerType === 'mouse' && e.button !== 0)) return;
       try { z.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
       G.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, armed: false, aim: 0, power: 0 };
       G.kb.on = false; e.preventDefault(); G.kick();
@@ -644,7 +856,7 @@
     G.on(z, 'contextmenu', function (e) { e.preventDefault(); });
 
     G.on(z, 'keydown', function (e) {
-      if (G.over || G.ball.active) return;
+      if (!G.canThrow()) return;
       var k = G.kb, used = true;
       if (e.key === 'ArrowLeft') { k.aim = clamp(k.aim - 0.08, -1, 1); k.on = true; }
       else if (e.key === 'ArrowRight') { k.aim = clamp(k.aim + 0.08, -1, 1); k.on = true; }
@@ -684,7 +896,8 @@
 
   GP.destroy = function () {
     var G = this;
-    G.running = false;
+    G.flushStats();
+    G.running = false; G.dead = true;
     if (G.raf) cancelAnimationFrame(G.raf); G.raf = 0;
     G.timers.forEach(clearTimeout); clearTimeout(G.msgTimer);
     if (G.ro) G.ro.disconnect(); if (G.io) G.io.disconnect();
@@ -728,8 +941,9 @@
     throwBall: function (o) { return inst ? inst.throwBall(o && o.aim, o && o.power) : false; },
     getState: function () {
       if (!inst) return null;
-      return { shots: inst.shots, sunk: inst.sunk, streak: inst.streak, best: inst.best, over: inst.over, flying: inst.ball.active, running: inst.running,
-        drawCalls: inst.p.renderer.info.render.calls };
+      return { side: inst.side, phase: inst.phase, ot: inst.ot, shotsLeft: inst.shotsLeft, offhand: inst.offhand, penalty: inst.penalty,
+        cups: { me: inst.upCount('me'), cpu: inst.upCount('cpu') }, record: inst.rec, shots: inst.shots, over: inst.over,
+        flying: inst.ball.active, running: inst.running, drawCalls: inst.p.renderer.info.render.calls };
     }
   };
 })();
