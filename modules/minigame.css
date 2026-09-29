@@ -36,6 +36,7 @@
 .rmg-btn:active{transform:scale(.97)}
 .rmg-btn:focus-visible{outline:none;box-shadow:var(--focus,0 0 0 2px #0E2027,0 0 0 4px #BF9A55)}
 .rmg-reset{position:absolute;right:var(--s4,16px);bottom:var(--s3,12px)}
+.rmg-rerack{position:absolute;right:var(--s4,16px);bottom:calc(var(--s3,12px) + 52px)}
 .rmg-primary{background:var(--rmg-accent,var(--accent,var(--solo,#C8262E)));color:var(--rmg-accent-fg,var(--solo-rim,#F6F3EC));border-color:transparent}
 
 .rmg-over{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2,8px);

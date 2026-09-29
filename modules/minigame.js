@@ -9,7 +9,9 @@
  *
  * You vs the CPU, Ruski rules: 2 shots a turn, rerack to a 3-2-1 triangle at 6 cups and a stoplight at 3,
  * two hits in one turn makes the other side yack and lose a shot, a shot off the back of the table is
- * Ginobes (off-hand next turn), one redemption shot, overtime at 3 cups, then double overtime (full rack).
+ * Ginobes (the shooter's next shot is off-hand), one redemption shot, overtime at 3 cups, then double overtime (full rack).
+ * Both shots in one turn = balls back. You have to call your own reracks (the Rerack button) before your next
+ * shot or you lose the rack; calling one when it isn't a rerack is Galaxy: the CPU's cups scatter until the next rerack.
  *
  * opts (all optional):
  *   caption   {value, label}     small stat drawn bottom-left (replaces the old .cap block)
@@ -267,11 +269,14 @@
       root.appendChild(cap);
     }
     var coarse = false; try { coarse = window.matchMedia('(pointer: coarse)').matches; } catch (e) { /* ignore */ }
-    var msg = el('p', 'rmg-msg', (coarse ? 'Pull back and let go' : 'Drag back and release') + ' · you vs the CPU');
+    var msg = el('p', 'rmg-msg', (coarse ? 'Pull back and let go' : 'Drag back and release') + '. Call Rerack at 6 and 3 cups.');
     root.appendChild(msg);
     var resetBtn = el('button', 'rmg-btn rmg-reset', "Rack 'em"); resetBtn.type = 'button';
     resetBtn.setAttribute('aria-label', "Rack 'em: restart the game");
     root.appendChild(resetBtn);
+    var rerackBtn = el('button', 'rmg-btn rmg-rerack', 'Rerack'); rerackBtn.type = 'button';
+    rerackBtn.setAttribute('aria-label', 'Call rerack on the CPU\'s cups');
+    root.appendChild(rerackBtn);
 
     var over = el('div', 'rmg-over'); over.hidden = true;
     over.setAttribute('role', 'dialog'); over.setAttribute('aria-label', 'Game over');
@@ -288,7 +293,7 @@
       figure: figure,
       splash: { pts: splash, geo: spGeo, pos: spPos, vel: spVel, life: spLife, n: SP, mat: spMat, beer: new T.Color(colors.beer), yack: new T.Color(colors.yack) },
       aim: { pts: aim, geo: aimGeo, pos: aimPos, n: AIMN },
-      dom: { root: root, zone: zone, vals: vals, msg: msg, reset: resetBtn, over: over, overSub: overSub, overTitle: overTitle, again: again, live: live },
+      dom: { root: root, zone: zone, vals: vals, msg: msg, reset: resetBtn, rerack: rerackBtn, over: over, overSub: overSub, overTitle: overTitle, again: again, live: live },
       disposables: [cupGeo, cupMat, ringGeo, ringMat, shGeo, shMat, shTex, dotTex, spGeo, spMat, aimGeo, aimMat, table.geometry, table.material, edge.geometry, edge.material,
         ballMesh.geometry, ballMesh.material, ballShadow.geometry, bulbMesh.geometry, bulbMesh.material,
         fTex, fMat, fGeo, outMat, shirtMat, toyMat, dotMat, figGeo.torso, figGeo.head, figGeo.arm, figGeo.hand, figGeo.eye]
@@ -343,6 +348,7 @@
     G.over = false; G.phase = 'main'; G.ot = 0; G.winner = null; G.shots = 0;
     G.stat = G.stat || { shots: 0, hits: 0 };
     G.penalty = { me: 0, cpu: 0 }; G.ginobes = { me: false, cpu: false }; G.racked = { me: {}, cpu: {} };
+    G.rerackDue = null; G.galaxy = false;   // rerack you're owed on the CPU's cups but haven't called; Galaxy scatter
     G.side = 'me'; G.shotsLeft = 2; G.turnShots = 2; G.turnHits = 0; G.offhand = false; G.wait = false;
     G.chug = null; G.yack = null; G.throwPose = null;
     G.setRack('me', 'full', true); G.setRack('cpu', 'full', true);
@@ -400,6 +406,14 @@
     return { vx: v * cs * dx / D, vy: v * Math.sin(C.ELEV), vz: v * cs * dz / D };
   }
 
+  /* is the side that's up shooting its next ball off-hand? (Ginobes; blurs the table on your shots) */
+  GP.syncOffhand = function () {
+    var G = this;
+    G.offhand = !!G.ginobes[G.side];
+    G.p.dom.root.classList.toggle('rmg-offhand', G.side === 'me' && G.offhand && !G.over);
+    G.hud();
+  };
+
   GP.canThrow = function () { var G = this; return !G.over && !G.wait && G.side === 'me' && G.shotsLeft > 0 && !G.ball.active; };
 
   /* put the ball in the air for `side`. dry = simulate only, returns true if it would sink */
@@ -420,10 +434,12 @@
     var G = this;
     if (!G.canThrow()) return false;
     aim = clamp(+aim || 0, -1, 1); power = clamp(+power || 0, 0, 1);
-    if (G.offhand) { aim = clamp(aim + (Math.random() - 0.5) * 0.4, -1, 1); power = clamp(power + (Math.random() - 0.5) * 0.14, 0, 1); }   // lefty: wobbly release
+    if (G.rerackDue) { G.rerackDue = null; G.say('Didn\'t call rerack. You lose the rack.'); }
+    var lefty = G.ginobes.me; G.ginobes.me = false;   // Ginobes lasts one shot
+    if (lefty) { aim = clamp(aim + (Math.random() - 0.5) * 0.4, -1, 1); power = clamp(power + (Math.random() - 0.5) * 0.14, 0, 1); }   // lefty: wobbly release
     G.fire('me', launchVel(aim, power));
     G.shots++; G.shotsLeft--; G.hud();
-    G.ball.counts = !G.offhand;   // off-hand shots are handicapped, so they don't count toward the hit rate
+    G.ball.counts = !lefty; G.syncOffhand();   // off-hand shots are handicapped, so they don't count toward the hit rate
     if (!G.firstThrow) { G.firstThrow = true; G.p.dom.msg.classList.remove('rmg-show'); }
     G.drag = null; G.kb.on = false; G.acc = 0;
     G.kick();
@@ -453,23 +469,24 @@
     if (G.over || G.side !== 'cpu' || G.shotsLeft <= 0) return;
     if (G.chug || G.yack || G.ball.active) { G.later(function () { G.cpuShoot(); }, 300); return; }
     var rate = typeof G.opts.cpuHitRate === 'function' ? G.opts.cpuHitRate() : G.opts.cpuHitRate;   // a function so it follows live data
-    var p = clamp(+rate || CPU_P, 0.05, 0.9) * (G.offhand ? 0.5 : 1);
+    var lefty = G.ginobes.cpu; G.ginobes.cpu = false; G.syncOffhand();
+    var p = clamp(+rate || CPU_P, 0.05, 0.9) * (lefty ? 0.5 : 1);
     var v = G.cpuPickShot(Math.random() < p);
     G.throwPose = { t: 0 }; G.kick();
     G.later(function () { G.fire('cpu', v); G.shotsLeft--; G.hud(); G.kick(); }, reduced() ? 150 : 380);
   };
 
-  GP.startTurn = function (side, shots) {
+  GP.startTurn = function (side, shots, lead) {
     var G = this;
     if (G.over) return;
     G.side = side; G.turnHits = 0; G.wait = false;
     var n = shots || Math.max(1, 2 - G.penalty[side]); G.penalty[side] = 0;
     G.shotsLeft = n; G.turnShots = n;
-    G.offhand = G.ginobes[side]; G.ginobes[side] = false;
-    G.p.dom.root.classList.toggle('rmg-offhand', side === 'me' && G.offhand);
-    var redo = G.phase === 'redemption', lefty = G.offhand ? ' Off-hand (Ginobes).' : '';
-    if (side === 'me') G.say(redo ? 'Redemption: one shot to stay alive.' : 'Your turn: ' + n + (n > 1 ? ' shots.' : ' shot.') + lefty, redo);
-    else { G.say(redo ? 'CPU gets one redemption shot…' : 'CPU\'s turn: ' + n + (n > 1 ? ' shots.' : ' shot.') + lefty); G.later(function () { G.cpuShoot(); }, 1100); }
+    G.syncOffhand();
+    var redo = G.phase === 'redemption', lefty = G.offhand ? ' First shot off-hand (Ginobes).' : '';
+    lead = lead || '';
+    if (side === 'me') G.say(redo ? 'Redemption: one shot to stay alive.' : lead + 'Your turn: ' + n + (n > 1 ? ' shots.' : ' shot.') + lefty, redo);
+    else { G.say(redo ? 'CPU gets one redemption shot…' : lead + 'CPU\'s turn: ' + n + (n > 1 ? ' shots.' : ' shot.') + lefty); G.later(function () { G.cpuShoot(); }, 1100); }
     G.hud(); G.kick();
   };
 
@@ -477,9 +494,43 @@
   GP.maybeRerack = function (side) {
     var G = this, n = G.upCount(side);
     if (G.ot === 1) return '';
-    if (n === 6 && !G.racked[side].tri) { G.racked[side].tri = true; G.setRack(side, 'tri6'); return ' Rerack: triangle.'; }
-    if (n === 3 && !G.racked[side].stop) { G.racked[side].stop = true; G.setRack(side, 'stop3'); return ' Rerack: stoplight.'; }
+    var kind = n === 6 && !G.racked[side].tri ? 'tri6' : n === 3 && !G.racked[side].stop ? 'stop3' : null;
+    if (!kind) return '';
+    G.racked[side][kind === 'tri6' ? 'tri' : 'stop'] = true;
+    if (side === 'cpu') { G.rerackDue = kind; return ''; }   // your call: tap Rerack before your next shot
+    G.setRack(side, kind); return kind === 'tri6' ? ' CPU calls rerack: triangle.' : ' CPU calls rerack: stoplight.';
     return '';
+  };
+
+  /* the Rerack button. Owed a rerack: the CPU's cups go into formation (this also ends a Galaxy).
+     Not owed one: Galaxy, the CPU's cups spread out across their end until your next real rerack. */
+  GP.callRerack = function () {
+    var G = this;
+    if (G.over) return;
+    if (G.rerackDue) {
+      var kind = G.rerackDue; G.rerackDue = null; G.galaxy = false;
+      G.setRack('cpu', kind);
+      G.say(kind === 'tri6' ? 'Rerack: triangle.' : 'Rerack: stoplight.');
+    } else {
+      G.galaxy = true; G.scatter('cpu');
+      G.say('Galaxy! That wasn\'t a rerack. Cups spread out until the next one.');
+    }
+    G.hud(); G.kick();
+  };
+
+  /* Galaxy: standing cups slide to random spots on their end of the table, never touching */
+  GP.scatter = function (side) {
+    var G = this, up = G.p.cups.filter(function (c) { return c.side === side && c.state === 'up'; }), placed = [];
+    up.forEach(function (c) {
+      var x = c.x, z = c.z;
+      for (var i = 0; i < 300; i++) {
+        var px = (Math.random() * 2 - 1) * 1.75, pz = -4.75 + Math.random() * 3.3;
+        if (placed.every(function (q) { return (q.x - px) * (q.x - px) + (q.z - pz) * (q.z - pz) > 1.1 * 1.1; })) { x = px; z = pz; break; }
+      }
+      if (side === 'me') { x = -x; z = MIRROR - z; }
+      placed.push({ x: side === 'me' ? -x : x, z: side === 'me' ? MIRROR - z : z });
+      c.tx = x; c.tz = z;
+    });
   };
 
   GP.endShot = function (sunkCup) {
@@ -487,7 +538,7 @@
     b.active = false; G.wait = true;
     var ginobes = !sunkCup && !b.touched && (you ? b.maxBack < C.Z_FAR : b.maxBack > C.Z_NEAR);
     if (you && b.counts) { G.stat.shots++; if (sunkCup) G.stat.hits++; }
-    if (ginobes) G.ginobes[shooter] = true;
+    if (ginobes) { G.ginobes[shooter] = true; G.syncOffhand(); }
 
     if (G.phase === 'redemption') {
       if (sunkCup && G.upCount(target) === 0) {
@@ -507,18 +558,19 @@
       }
       note = G.maybeRerack(target);
       G.say((you ? 'Splash! ' : 'CPU hits. Drink. ') + G.upCount(target) + ' left.' + note);
-    } else G.say(ginobes ? (you ? 'Ginobes! Off the back. Lefty next turn.' : 'CPU Ginobes! Off-hand next turn.') : (b.rim ? 'Rim out.' : (you ? 'Miss.' : 'CPU misses.')));
+    } else G.say(ginobes ? (you ? 'Ginobes! Off the back. Lefty next shot.' : 'CPU Ginobes! Off-hand next shot.') : (b.rim ? 'Rim out.' : (you ? 'Miss.' : 'CPU misses.')));
 
     G.hud(); G.kick();
     if (G.shotsLeft > 0) { G.later(function () { if (shooter === 'cpu') G.cpuShoot(); else { G.wait = false; G.kick(); } }, you ? 450 : 900); return; }
 
-    /* turn over. Two hits in one turn: the other side yacks and loses a shot */
-    var delay = 1200;
+    /* turn over. Two hits in one turn: balls back, and the other side yacks and loses a shot next turn */
     if (G.turnHits >= 2 && G.turnShots >= 2) {
-      G.penalty[target] = 1; delay = 2600;
+      G.penalty[target] = 1;
       G.later(function () { G.doYack(target); }, 700);
+      G.later(function () { G.startTurn(shooter, 2, 'Balls back! '); }, 2600);
+      return;
     }
-    G.later(function () { G.startTurn(target); }, delay);
+    G.later(function () { G.startTurn(target); }, 1200);
   };
 
   GP.doYack = function (side) {
@@ -534,7 +586,7 @@
 
   GP.overtime = function (redeemer) {
     var G = this;
-    G.ot++; G.phase = 'main'; G.winner = null; G.racked = { me: {}, cpu: {} };
+    G.ot++; G.phase = 'main'; G.winner = null; G.racked = { me: {}, cpu: {} }; G.rerackDue = null; G.galaxy = false;
     var kind = G.ot === 1 ? 'ot3' : 'full';   // overtime is 3 cups a side, double overtime is a full rack again
     G.setRack('me', kind, true); G.setRack('cpu', kind, true);
     G.say(G.ot === 1 ? 'Overtime: 3 cups each.' : 'Double overtime: full rack.');
@@ -870,6 +922,7 @@
     G.on(z, 'blur', function () { G.kb.on = false; G.kick(); });
 
     G.on(G.p.dom.reset, 'click', function () { G.reset(); });
+    G.on(G.p.dom.rerack, 'click', function () { G.callRerack(); });
     G.on(G.p.dom.again, 'click', function () { G.reset(); z.focus({ preventScroll: true }); });
   };
 
@@ -941,7 +994,7 @@
     throwBall: function (o) { return inst ? inst.throwBall(o && o.aim, o && o.power) : false; },
     getState: function () {
       if (!inst) return null;
-      return { side: inst.side, phase: inst.phase, ot: inst.ot, shotsLeft: inst.shotsLeft, offhand: inst.offhand, penalty: inst.penalty,
+      return { side: inst.side, phase: inst.phase, ot: inst.ot, shotsLeft: inst.shotsLeft, offhand: inst.offhand, penalty: inst.penalty, rerackDue: inst.rerackDue, galaxy: inst.galaxy,
         cups: { me: inst.upCount('me'), cpu: inst.upCount('cpu') }, record: inst.rec, shots: inst.shots, over: inst.over,
         flying: inst.ball.active, running: inst.running, drawCalls: inst.p.renderer.info.render.calls };
     }
