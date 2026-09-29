@@ -37,12 +37,20 @@ Full math and worked examples live on the in-app **Rules** page — one source o
 
 ## 🛠️ Under the hood
 
-This is a deliberately simple, dependency-light build:
+Still dependency-light: no build step, no bundler, just static files (see [`PORTING.md`](PORTING.md) for why).
 
-- **Single file** — `index.html` is the entire app: markup, styling, and logic, no build step
-- **Firebase Realtime Database** — stores games, player roster, and season/tournament state, synced live to every visitor
-- **EmailJS** — handles outgoing notifications
-- **GitHub Pages** — static hosting, deployed straight from `main` (see `CNAME` for the custom domain)
+```
+index.html        markup shell
+css/              tokens, base, components, pages, tournament, motion
+js/               config, util, elo, stats, replay, ui, data (Firebase), router, views/, celebration, tournament, hero, main
+modules/          the playable mini-game on the Home hero
+tools/elo-diff.mjs  old-vs-new ELO regression against the live data
+```
+
+- **Firebase Realtime Database**: games, roster, counter and tournament flag in one object, synced live to every visitor. Only `js/data.js` talks to it.
+- **EmailJS**: loaded and initialised; nothing sends mail yet
+- **three.js r128**: lazy-loaded for the Home hero only
+- **GitHub Pages**: static hosting, deployed straight from `main` (see `CNAME` for the custom domain)
 
 ## 🚀 Running it locally
 
@@ -54,7 +62,7 @@ cd ruski-elo
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000/index.html`. It'll connect to the live Firebase database, so you'll see real data — submit/admin actions are real writes, so treat a local run with the same care as the live site.
+Then open `http://localhost:8000/index.html`. It connects to the live Firebase database, so submit/admin actions are real writes. To stay safe, add `?mock=1` (fake local data, nothing saved) or `?readonly=1` (real data, writes blocked).
 
 ## 📜 The Ruski rulebook, abridged
 

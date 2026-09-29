@@ -1,0 +1,25 @@
+/* Design tokens: the one place colors, type, spacing, radii and motion curves are defined. */
+:root{
+  /* Black basement, green type. Surfaces: near-black with a trace of green, lightness steps only. */
+  --pine:#060806; --hull:#0C100D; --deck:#111712; --bridge:#172019; --bilge:#030403;
+  --plywood:#2F5E3D; --table-edge:#1B3A26;   /* the table is painted Fisher green (token name kept: the mini-game reads it) */
+  /* Text is green, in four tiers (contrast on --pine: 14.0 / 9.8 / 6.7 / 4.6) */
+  --ball:#9BE8B3; --sail:#74C690; --fog:#58A574; --silt:#4B8761;
+  --wave:#E2FBE9;   /* selected / you-are-here: the palest green, so it reads brighter than the text around it */
+  --pingpong:#F3EFE6;   /* the actual ball and white objects on the table */
+  --solo:#C8262E; --solo-press:#A91F26; --solo-rim:#F6F3EC;
+  --lager:#D8A23A; --brass:#BF9A55; --overtime:#2D5DA6; --yack:#8C8A3E; --flag-o:#E9C23B; --ebb:#D0645A;
+  --wet-ring:rgba(216,162,58,.22);
+  /* Replay table + mini-game share these: solid white table, green F decal, one neutral toy colour for every figure's head and hands */
+  --rmg-table:#F4F5F2; --rmg-edge:#BFC4BC; --rmg-decal:#1FA34A; --rmg-figure:#9DB0A6; --rmg-shirt:#F4F4EF; --rmg-ink:#101511;
+  --line-soft:rgba(243,239,230,.05); --line:rgba(243,239,230,.09); --line-strong:rgba(243,239,230,.16);
+  --focus:0 0 0 2px var(--pine),0 0 0 4px var(--brass);
+  --r-s:4px; --r-m:8px; --r-l:14px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s6:24px; --s8:32px; --s12:48px;
+  --ease-out:cubic-bezier(.23,1,.32,1); --ease-io:cubic-bezier(.77,0,.175,1); --ease-toss:cubic-bezier(.33,0,.67,1);
+  --f-display:'Big Shoulders Stencil Display','Big Shoulders Stencil','Oswald','Arial Narrow',Impact,sans-serif;
+  --f-ui:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-marker:'Permanent Marker','Segoe Print',cursive;
+  --nav-h:60px; --head-h:52px;
+  color-scheme:dark;
+}

@@ -1,0 +1,28 @@
+/* Tournament Day: felt theme, bouncing balls, banner. Only active under html[data-theme="tournament"]. */
+html[data-theme="tournament"]{
+  --pine:#0B6B2D; --hull:#09602A; --deck:#0A652C; --bridge:#0C6E30; --bilge:#07521F;
+  --ball:#FFFFFF; --sail:#EEF7F1; --fog:#D8EDDF; --silt:#C4E0CC; --wave:#FFFFFF;
+  --lager:#FFD978; --brass:#F6E2B0; --ebb:#FFC4B8;
+  --line-soft:rgba(255,255,255,.10); --line:rgba(255,255,255,.16); --line-strong:rgba(255,255,255,.28);
+  --focus:0 0 0 2px var(--pine),0 0 0 4px #fff;
+  --plywood:#2F5E3D;
+}
+html[data-theme="tournament"] body{
+  background:
+    radial-gradient(120% 70% at 50% -12%,rgba(255,244,214,.10),rgba(255,244,214,0) 60%),
+    radial-gradient(160% 110% at 50% 115%,rgba(0,0,0,.28),rgba(0,0,0,0) 60%),
+    var(--pine);
+  background-attachment:fixed}
+html[data-theme="tournament"] .app-head,html[data-theme="tournament"] .app-nav{background:#08582A}
+.bounce{display:none;position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+html[data-theme="tournament"] .bounce{display:block}
+.bounce i{position:absolute;left:0;top:0;border-radius:50%;will-change:transform;
+  background:radial-gradient(circle at 33% 27%,#fff 0 9%,#FBF8F1 22%,#EAE4D6 62%,#CFC7B2 100%);
+  box-shadow:inset -2px -3px 5px rgba(0,0,0,.14),0 8px 10px -6px rgba(0,0,0,.4)}
+.tbanner{display:none;order:0;margin-bottom:var(--s6);padding:var(--s6) var(--s4);border:1px solid var(--line-strong);border-radius:var(--r-m);background:var(--hull);position:relative;overflow:hidden}
+html[data-theme="tournament"] .tbanner{display:block}
+.tbanner .t-title{font-size:37px;line-height:1}
+.tbanner p{margin-top:var(--s2);color:var(--sail)}
+.tbanner .marker{display:block;margin-top:var(--s4);font-size:23px;color:var(--ball);transform:rotate(-1.5deg);transform-origin:0 50%}
+.tbanner .btn{margin-top:var(--s4);background:var(--pingpong);color:#0A3D1C;border-color:var(--pingpong)}
+.tbanner .btn:hover{background:#fff}

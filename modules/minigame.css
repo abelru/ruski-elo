@@ -1,0 +1,52 @@
+/* RuskiMiniGame styles. Only CSS variables (with fallbacks); no palette of its own.
+   Optional overrides: --rmg-accent, --rmg-btn-bg, --rmg-btn-fg, --rmg-scrim. */
+
+.rmg-host{position:relative;overflow:hidden;-webkit-user-select:none;user-select:none}
+.rmg-host.rmg-on>.fallback,.rmg-host.rmg-on>.cap{display:none}
+
+.rmg{position:absolute;inset:0;font-family:var(--f-ui,system-ui,-apple-system,'Segoe UI',sans-serif);color:var(--sail,#B7C3C2)}
+/* beats the host page's ".hero canvas{opacity:0}" rule */
+.rmg-host .rmg-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:1}
+
+/* Throw zone. Only this element uses touch-action:none, so the top of the hero (and the HUD) still scroll the page.
+   On touch it covers the lower part of the hero; with a mouse it covers everything. */
+.rmg-zone{position:absolute;left:0;right:0;bottom:0;height:62%;touch-action:none;cursor:grab;outline:none;-webkit-touch-callout:none}
+.rmg-zone:active{cursor:grabbing}
+@media (pointer:fine){.rmg-zone{height:100%}}
+.rmg-zone:focus-visible{box-shadow:inset 0 0 0 2px var(--brass,#BF9A55);border-radius:0}
+
+.rmg-hud{position:absolute;top:var(--s3,12px);left:var(--s4,16px);right:var(--s4,16px);margin:0;display:flex;gap:var(--s4,16px);pointer-events:none}
+.rmg-stat{min-width:0}
+.rmg-k{font:500 11px/1.2 var(--f-ui,system-ui,sans-serif);letter-spacing:.06em;text-transform:uppercase;color:var(--fog,#8DA0A3)}
+.rmg-v{margin:0;font:800 24px/1.05 var(--f-display,Impact,'Arial Narrow',sans-serif);color:var(--ball,#F3EFE6);font-variant-numeric:tabular-nums;text-shadow:0 1px 0 rgba(0,0,0,.4)}
+
+.rmg-caption{position:absolute;left:var(--s3,12px);bottom:var(--s3,12px);pointer-events:none;padding:6px 10px;border-radius:var(--r-m,8px);background:var(--rmg-chip,rgba(6,16,10,.85))}   /* chip keeps it legible over the white table */
+.rmg-cap-v{font:800 34px/1 var(--f-display,Impact,'Arial Narrow',sans-serif);color:var(--ball,#F3EFE6);font-variant-numeric:tabular-nums;text-shadow:0 1px 0 rgba(0,0,0,.4)}
+.rmg-cap-k{font:500 12px/1.3 var(--f-ui,system-ui,sans-serif);letter-spacing:.02em;color:var(--sail,#B7C3C2)}
+
+.rmg-msg{position:absolute;left:var(--s4,16px);right:var(--s4,16px);top:56px;margin:0;text-align:left;pointer-events:none;
+  font:600 14px/1.2 var(--f-ui,system-ui,sans-serif);letter-spacing:.02em;color:var(--ball,#F3EFE6);text-shadow:0 1px 2px rgba(0,0,0,.6);
+  opacity:0;transform:translateY(4px);transition:opacity .25s var(--ease-out,ease-out),transform .25s var(--ease-out,ease-out)}
+.rmg-msg.rmg-show{opacity:1;transform:none}
+
+.rmg-btn{min-width:44px;min-height:44px;padding:0 var(--s4,16px);border-radius:var(--r-m,8px);touch-action:manipulation;cursor:pointer;
+  font:600 14px/1 var(--f-ui,system-ui,sans-serif);letter-spacing:.02em;
+  background:var(--rmg-btn-bg,var(--hull,#132A32));color:var(--rmg-btn-fg,var(--ball,#F3EFE6));
+  border:1px solid var(--line-strong,rgba(243,239,230,.16));transition:transform .12s var(--ease-out,ease-out)}
+.rmg-btn:active{transform:scale(.97)}
+.rmg-btn:focus-visible{outline:none;box-shadow:var(--focus,0 0 0 2px #0E2027,0 0 0 4px #BF9A55)}
+.rmg-reset{position:absolute;right:var(--s4,16px);bottom:var(--s3,12px)}
+.rmg-primary{background:var(--rmg-accent,var(--accent,var(--solo,#C8262E)));color:var(--rmg-accent-fg,var(--solo-rim,#F6F3EC));border-color:transparent}
+
+.rmg-over{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2,8px);
+  padding:var(--s4,16px);text-align:center;background:var(--rmg-scrim,rgba(0,0,0,.62))}
+.rmg-over[hidden]{display:none}
+.rmg-over-t{margin:0;font:800 40px/1 var(--f-display,Impact,'Arial Narrow',sans-serif);color:var(--ball,#F3EFE6)}
+.rmg-over-s{margin:0 0 var(--s2,8px);font:500 15px/1.3 var(--f-ui,system-ui,sans-serif);color:var(--sail,#B7C3C2)}
+
+.rmg-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (prefers-reduced-motion:reduce){
+  .rmg-msg,.rmg-btn{transition:none}
+  .rmg-btn:active{transform:none}
+}
