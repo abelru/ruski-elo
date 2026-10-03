@@ -9,7 +9,7 @@
  *
  * You vs the CPU, Ruski rules: 2 shots a turn, rerack to a 3-2-1 triangle at 6 cups and a stoplight at 3,
  * two hits in one turn makes the other side yack and lose a shot, a shot off the back of the table is
- * Ginobes (the shooter's next shot is off-hand), one redemption shot, overtime at 3 cups, then double overtime (full rack).
+ * Ginobes (the shooter's next shot is off-hand), redemption until a miss, overtime at 3 cups, then double overtime (full rack).
  * Both shots in one turn = balls back. You have to call your own reracks (the Rerack button) before your next
  * shot or you lose the rack; calling one when it isn't a rerack is Galaxy: the CPU's cups scatter until the next rerack.
  *
@@ -485,8 +485,8 @@
     G.syncOffhand();
     var redo = G.phase === 'redemption', lefty = G.offhand ? ' First shot off-hand (Ginobes).' : '';
     lead = lead || '';
-    if (side === 'me') G.say(redo ? 'Redemption: one shot to stay alive.' : lead + 'Your turn: ' + n + (n > 1 ? ' shots.' : ' shot.') + lefty, redo);
-    else { G.say(redo ? 'CPU gets one redemption shot…' : lead + 'CPU\'s turn: ' + n + (n > 1 ? ' shots.' : ' shot.') + lefty); G.later(function () { G.cpuShoot(); }, 1100); }
+    if (side === 'me') G.say(redo ? 'Redemption: shoot until you miss.' : lead + 'Your turn: ' + n + (n > 1 ? ' shots.' : ' shot.') + lefty, redo);
+    else { G.say(redo ? 'CPU shoots for redemption until it misses…' : lead + 'CPU\'s turn: ' + n + (n > 1 ? ' shots.' : ' shot.') + lefty); G.later(function () { G.cpuShoot(); }, 1100); }
     G.hud(); G.kick();
   };
 
@@ -542,18 +542,23 @@
 
     if (G.phase === 'redemption') {
       if (sunkCup && G.upCount(target) === 0) {
-        G.say(you ? 'You hit it! Overtime.' : 'CPU hit its redemption. Overtime.', true);
+        G.say(you ? 'You hit them all! Overtime.' : 'CPU redeemed every cup. Overtime.', true);
         G.later(function () { G.overtime(shooter); }, 1400);
-      } else G.later(function () { G.finish(G.winner); }, sunkCup ? 1200 : 700);
+      } else if (sunkCup) {   // redemption keeps going until a miss
+        var rr = G.maybeRerack(target);
+        G.shotsLeft = 1;
+        G.say((you ? 'Hit! Keep shooting, ' : 'CPU hits, keeps shooting. ') + G.upCount(target) + ' left.' + rr, you);
+        G.later(function () { if (shooter === 'cpu') G.cpuShoot(); else { G.wait = false; G.kick(); } }, you ? 450 : 1000);
+      } else G.later(function () { G.finish(G.winner); }, 700);
       G.hud(); G.kick(); return;
     }
 
     var note = '';
     if (sunkCup) {
       G.turnHits++;
-      if (G.upCount(target) === 0) {   // rack cleared: the other side gets one redemption shot
+      if (G.upCount(target) === 0) {   // rack cleared: the other side shoots for redemption until they miss
         G.winner = shooter; G.phase = 'redemption';
-        G.say(you ? 'Rack cleared! CPU gets one redemption shot.' : 'CPU cleared your rack. One redemption shot.', true);
+        G.say(you ? 'Rack cleared! CPU shoots for redemption.' : 'CPU cleared your rack. Redemption: shoot until you miss.', true);
         G.hud(); G.later(function () { G.startTurn(target, 1); }, 1500); G.kick(); return;
       }
       note = G.maybeRerack(target);

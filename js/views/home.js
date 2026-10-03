@@ -68,7 +68,8 @@
       <aside class="home-side"><div class="section"><div class="seg" role="group" aria-label="Period" id="period">
         ${Object.keys(ST.PERIODS).map(k => `<button aria-pressed="${k === homePeriod}" data-p="${k}">${{ week: 'Week', month: 'Month', year: 'Year', alltime: 'All time' }[k]}</button>`).join('')}
       </div></div>
-      <div id="hl" style="margin-top:12px"></div></aside></div>`;
+      <div id="hl" style="margin-top:12px"></div></aside></div>
+      <button class="wheel-fab" id="wheelfab" aria-label="Pick teams with the wheel"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5V21.5M2.5 12H21.5M5.3 5.3l13.4 13.4M18.7 5.3L5.3 18.7" stroke="currentColor" stroke-width="1.3"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/></svg><span>Pick teams</span></button>`;
 
     /* Everything below the hero can be refreshed when another phone logs a game, without touching the mini-game. */
     function fill() {
@@ -85,6 +86,7 @@
       const b = e.target.closest('#period button');
       if (b) { homePeriod = b.dataset.p; $$('#period button', el).forEach(x => x.setAttribute('aria-pressed', x === b)); $('#hl', el).innerHTML = highlightsHtml(homePeriod); return; }
       if (e.target.closest('#more')) { showAllGames = !showAllGames; fill(); }
+      if (e.target.closest('#wheelfab')) R.teamWheel.open();
     });
     return { el, heading: 'Home', onShown: () => R.hero.mount($('#hero', el), sunk, wc), cleanup: () => R.hero.unmount(), onData: fill };
   };

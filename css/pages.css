@@ -25,9 +25,9 @@
    6. RANKINGS podium (CSS 3D)
    ===================================================================== */
 .podium{perspective:800px;margin:var(--s4) 0 var(--s6);padding:var(--s6) 0 0;background:var(--bilge);border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden}
-.podium .floor{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;gap:4px;transform-style:preserve-3d;transform:rotateX(var(--tiltx,0deg)) rotateY(var(--tilty,0deg));
+.podium .floor{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:4px;transform-style:preserve-3d;transform:rotateX(var(--tiltx,0deg)) rotateY(var(--tilty,0deg));
   transition:transform .3s var(--ease-out);padding:0 var(--s2) 0}
-.tower{position:relative;display:flex;flex-direction:column;align-items:center;transform-style:preserve-3d}
+.tower{position:relative;display:flex;flex-direction:column;align-items:center;min-width:0;transform-style:preserve-3d}
 .tower .stack{position:relative;width:66px;transform-style:preserve-3d}
 .pcup{position:relative;width:66px;height:56px;margin-top:-30px}
 .pcup:first-child{margin-top:0}
@@ -37,8 +37,8 @@
   clip-path:polygon(0 0,100% 0,86% 100%,14% 100%);border-radius:0 0 50% 50%/0 0 12% 12%}
 .tower.r1 .rim{background:var(--solo-rim)}
 .tower.r1 .pcup:first-child .rim{box-shadow:0 0 0 2px var(--brass)}
-.tower .plate{margin-top:var(--s3);text-align:center;padding:0 2px var(--s3);width:100%;min-width:0}
-.tower .plate .nm{font:600 15px/1.2 var(--f-ui);color:var(--ball)}
+.tower .plate{margin-top:var(--s3);text-align:center;padding:0 2px var(--s3);width:100%;min-width:0;display:grid;grid-template-rows:minmax(36px,auto) auto;align-items:end}   /* name row fits 2 lines and hugs the value, so all three values stay level */
+.tower .plate .nm{font:600 15px/1.2 var(--f-ui);color:var(--ball);white-space:normal;overflow-wrap:anywhere;text-wrap:balance;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}   /* equal columns: long names wrap to 2 lines instead of widening their tower; min-height keeps the three values level */
 .tower .plate .pe{font:800 23px var(--f-display);color:var(--ball)}
 .tower.r1 .plate .pe{color:var(--brass)}
 .tower .base{width:100%;height:10px;background:var(--bridge);border-top:1px solid var(--line-strong)}
