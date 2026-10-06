@@ -111,23 +111,24 @@ function buildReplay(game) {
   fit(mainLoser, 'cups', N - 1, false);
   let L = remov(mainLoser), rem = N - L;
   T[mainWinner].forEach(p => { p.red = 0; });
-  /* Redemption = exactly ONE shot per losing-team player, so a player has 0 or 1 redemption cups. */
-  T[mainLoser].forEach(p => { if (p.red > 1) { p.red = 1; approx = true; } });
+  /* Redemption: each losing-team player shoots until they miss, so a player can sink several. */
   if (goesOT) {
-    /* OT needs every remaining cup hit, so the remaining cups can't outnumber the shooters */
-    let guard = 40;
-    while (N - remov(mainLoser) > size && guard--) { biggest(mainLoser, 'cups').cups++; approx = true; }
-    L = remov(mainLoser); rem = N - L;
+    /* OT means redemption hit every remaining cup; the designated shooter sinks the last one */
     let sh = game.redemptionShooter && T[mainLoser].find(p => p.name === game.redemptionShooter);
     if (!sh) sh = T[mainLoser].find(p => p.red > 0) || T[mainLoser][0];
     T[mainLoser].shooterName = sh.name;
-    const others = T[mainLoser].filter(p => p !== sh).sort((a, b) => b.red - a.red);
-    const pick = [sh].concat(others).slice(0, rem);
-    T[mainLoser].forEach(p => { const want = pick.includes(p) ? 1 : 0; if (p.red !== want) approx = true; p.red = want; });
+    if (sh.red < 1) { sh.red = 1; approx = true; }
+    let guard = 60;
+    while (sum(mainLoser, 'red') > rem && guard--) {   // too many: take from the others first, keep the shooter's last cup
+      const p = T[mainLoser].filter(q => q !== sh && q.red > 0).sort((a, b) => b.red - a.red)[0] || (sh.red > 1 ? sh : null);
+      if (!p) break; p.red--; approx = true;
+    }
+    while (sum(mainLoser, 'red') < rem && guard--) { sh.red++; approx = true; }
     fit(winner, 'ot', otN, true); fit(1 - winner, 'ot', otN - 1, false);
   } else {
-    let over = sum(mainLoser, 'red') - Math.max(0, rem - 1);
-    for (let i = T[mainLoser].length - 1; over > 0 && i >= 0; i--) if (T[mainLoser][i].red) { T[mainLoser][i].red = 0; over--; approx = true; }
+    /* no OT: redemption fell short, so at least one cup was left standing */
+    let over = sum(mainLoser, 'red') - Math.max(0, rem - 1), guard = 60;
+    while (over > 0 && guard--) { biggest(mainLoser, 'red').red--; over--; approx = true; }
     T.forEach(t => t.forEach(p => { p.ot = 0; }));
   }
   const Rsum = sum(mainLoser, 'red');
@@ -182,15 +183,16 @@ function buildReplay(game) {
   const mainShots = schedule(mainWinner, mainWinner, beatsOf('cups'), R('main-slots'), size).map(s => ({ ...s, phase: 'main' }));
   let redShots = [], otShots = [];
   {
-    /* One shot each. OT: only as many shooters as cups left, the designated shooter last. Otherwise everyone shoots, order seeded. */
-    const P2 = T[mainLoser];
+    /* Each player shoots until they miss: their redemption hits, then a miss. Order is seeded. With OT the
+       designated shooter goes last and their final hit clears the rack, so they never miss. */
+    const P2 = T[mainLoser], streak = (pi, miss) => Array.from({ length: P2[pi].red }, () => ({ team: mainLoser, pi, kind: 'hit', phase: 'red' }))
+      .concat(miss ? [{ team: mainLoser, pi, kind: 'miss', phase: 'red' }] : []);
+    const order = R('red-order').shuffle(P2.map((p, pi) => pi));
     if (goesOT) {
       const spi = P2.findIndex(p => p.name === P2.shooterName);
-      const order = P2.map((p, pi) => pi).filter(pi => P2[pi].red && pi !== spi).concat([spi]);
-      redShots = order.map(pi => ({ team: mainLoser, pi, kind: 'hit', phase: 'red' }));
-    } else {
-      redShots = R('red-order').shuffle(P2.map((p, pi) => pi)).map(pi => ({ team: mainLoser, pi, kind: P2[pi].red ? 'hit' : 'miss', phase: 'red' }));
-    }
+      order.filter(pi => pi !== spi).forEach(pi => { redShots = redShots.concat(streak(pi, true)); });
+      redShots = redShots.concat(streak(spi, false));
+    } else order.forEach(pi => { redShots = redShots.concat(streak(pi, true)); });
   }
   if (goesOT) otShots = schedule(mainLoser, winner, beatsOf('ot'), R('ot-slots'), size).map(s => ({ ...s, phase: 'ot' }));
 

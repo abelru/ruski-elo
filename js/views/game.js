@@ -27,6 +27,20 @@ const ICON = {
 };
 const cupXY = (t, c) => [c.x, t === 0 ? (TABLE_H / 2 - END_M - c.d) : (-TABLE_H / 2 + END_M + c.d)];
 
+/* Players standing beside the table: white tee with their name on it. Head and hands are one flat
+   toy-like grey-green (the mini-game guy's colour), never a skin tone; no hair; dot eyes. */
+function figSvg(name) {
+  const label = name.length > 9 ? name.slice(0, 8) + '…' : name, fit = label.length > 6 ? ` textLength="40" lengthAdjust="spacingAndGlyphs"` : '';
+  return `<svg class="figsvg" viewBox="0 0 60 112" aria-hidden="true">
+    <rect class="leg" x="20" y="80" width="9" height="30" rx="3"/><rect class="leg" x="31" y="80" width="9" height="30" rx="3"/>
+    <g class="arm al"><rect class="slv" x="6" y="40" width="10" height="16" rx="4"/><rect class="skin" x="7.5" y="54" width="7" height="16" rx="3.5"/></g>
+    <g class="arm ar"><rect class="slv" x="44" y="40" width="10" height="16" rx="4"/><rect class="skin" x="45.5" y="54" width="7" height="16" rx="3.5"/></g>
+    <path class="tee" d="M13 41Q30 34 47 41L47 82Q30 85 13 82Z"/>
+    <text class="nm" x="30" y="63" text-anchor="middle"${fit}>${esc(label)}</text>
+    <g class="hd"><circle class="skin" cx="30" cy="22" r="13"/><circle class="eye" cx="25.5" cy="21" r="1.7"/><circle class="eye" cx="34.5" cy="21" r="1.7"/></g>
+  </svg>`;
+}
+
 R.views.game = function (r) {
   const id = +r.arg, gi = DB.games.findIndex(g => g.id === id);
   const el = mk('');
@@ -64,7 +78,7 @@ R.views.game = function (r) {
     <div class="frame">
       <div class="scene" id="scene" aria-hidden="true">
         <div class="tbl3d"><div class="floor"></div><div class="top"><div class="mid"></div><svg class="fdecal" viewBox="0 0 100 100" aria-hidden="true"><path d="M27 10h50v17H46v15h27v16H46v32H27z" fill="var(--rmg-decal)"/></svg></div>
-          <div class="layer" id="cups"></div><div class="layer" id="puddles"></div><div class="layer" id="balls"></div></div>
+          <div class="layer" id="cups"></div><div class="layer" id="puddles"></div><div class="layer" id="balls"></div><div class="layer" id="figs"></div></div>
         <div class="teamtag top"><span class="marker">${esc(M.teamLabel[1])}</span></div>
         <div class="teamtag bot"><span class="marker">${esc(M.teamLabel[0])}</span></div>
         <div id="flash"></div>
@@ -99,7 +113,22 @@ R.views.game = function (r) {
   const scene = $('#scene', el), layer = $('#cups', el), pud = $('#puddles', el), ballsL = $('#balls', el), flashL = $('#flash', el);
   const map = {}; let tw = 340, ro = null, ballAnims = new Set();
 
-  function fitScene() { tw = Math.round(Math.max(230, Math.min(scene.clientWidth * 0.76, 380))); scene.style.setProperty('--tw', tw + 'px'); }
+  /* players: alternate sides of the table at their own end, front to back */
+  const figL = $('#figs', el), figs = [[], []];
+  RP.meta.T.forEach((team, t) => team.forEach((p, i) => {
+    const pos = document.createElement('div'); pos.className = 'pos figp';
+    const side = i % 2 === 0 ? -1 : 1, row = Math.floor(i / 2);
+    pos.style.setProperty('--x', side * 0.6);
+    pos.style.setProperty('--y', t === 0 ? TABLE_H / 2 - 0.2 - row * 0.26 : -TABLE_H / 2 + 0.1 + row * 0.26);
+    pos.innerHTML = `<div class="fig t${t + 1}${side < 0 ? ' lft' : ''}"><div class="bb">${figSvg(p.name)}</div></div>`;
+    figL.appendChild(pos); figs[t][i] = pos.firstChild;
+  }));
+  function figAct(fig, cls, ms) {
+    if (!fig || reduceMotion()) return;
+    fig.classList.remove(cls); void fig.offsetWidth; fig.classList.add(cls);
+    setTimeout(() => fig.classList.remove(cls), ms / S.speed);
+  }
+  function fitScene() { tw = Math.round(Math.max(210, Math.min(scene.clientWidth * 0.66, 360)));   /* leaves room beside the table for the players */ scene.style.setProperty('--tw', tw + 'px'); }
   function mount(sn, animate) {
     layer.innerHTML = ''; ballsL.innerHTML = ''; for (const k in map) delete map[k];
     sn.racks.forEach((rk, t) => rk.cups.forEach(c => {
@@ -177,7 +206,14 @@ R.views.game = function (r) {
     }));
     renderPuddles(sn);
     if (!animate) { ballsL.innerHTML = ''; ballAnims.clear(); }
-    if (animate && ev.type === 'shot') { launchBall(ev, i); if (ev.rerack !== null) flash('Rerack', 'sm'); }
+    if (animate && ev.type === 'shot') {
+      launchBall(ev, i); if (ev.rerack !== null) flash('Rerack', 'sm');
+      const me = figs[ev.team][ev.pi];
+      if (ev.kind !== 'skip') figAct(me, 'throw', 520);
+      if (ev.removed.length) figs[ev.aimTeam].forEach(f => figAct(f, 'sad', 900));   // their cup went down
+      if (ev.yack) setTimeout(() => figAct(me, 'yack', 1100), 300 / S.speed);
+    }
+    figs.forEach((team, t) => team.forEach(f => f.classList.toggle('cheer', ev.type === 'end' && t === w)));
     if (ev.type === 'phase' && (animate || o.flash)) flash(ev.label === 'OVERTIME' ? 'Overtime' : 'Redemption', ev.label === 'REDEMPTION' ? 'red' : '');
     if (ev.type === 'end') {
       const v = document.createElement('div'); v.className = 'victory'; v.textContent = 'Winner';

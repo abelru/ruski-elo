@@ -380,3 +380,32 @@ select.input{padding-right:var(--s2)}
 .rules .ex{margin:var(--s3) 0;padding:var(--s3) var(--s4);background:var(--hull);border:1px solid var(--line);border-left:3px solid var(--line-strong);border-radius:var(--r-s)}
 .rules .ex strong{color:var(--ball)}
 .rules .ex ul{margin-top:8px}
+
+/* Players beside the replay table (billboards like the cups). Neutral toy colour for head and hands, white tee with the name. */
+.fig{position:absolute;left:calc(var(--tw) * -.075);top:calc(var(--tw) * -.075);width:calc(var(--tw) * .15);height:calc(var(--tw) * .15);transform-style:preserve-3d}
+.fig .bb{position:absolute;left:0;bottom:50%;width:100%;height:calc(var(--tw) * .28);transform-origin:50% 100%;transform:rotateX(-56deg);transform-style:flat}
+.figsvg{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}
+.figsvg .tee,.figsvg .slv{fill:var(--pingpong);stroke:rgba(16,21,17,.55);stroke-width:1}
+.figsvg .skin{fill:var(--rmg-figure,#9DB0A6);stroke:rgba(16,21,17,.4);stroke-width:.8}
+.figsvg .leg{fill:#2F3A33}
+.figsvg .eye{fill:#101511}
+.figsvg .nm{font:800 10px var(--f-ui);fill:#101511;letter-spacing:-.01em}
+.figsvg .arm,.figsvg .hd{transform-box:view-box}
+.figsvg .al{transform-origin:11px 42px}.figsvg .ar{transform-origin:49px 42px}.figsvg .hd{transform-origin:30px 36px}
+.fig .figsvg{transform-origin:50% 100%;transition:transform .3s var(--ease-out)}
+.fig.throw .ar{animation:fig-throw .52s var(--ease-out)}
+.fig.lft.throw .ar{animation:none}.fig.lft.throw .al{animation:fig-throw-l .52s var(--ease-out)}
+.fig.sad .figsvg{animation:fig-sad .9s var(--ease-out)}
+.fig.yack .figsvg{animation:fig-yack 1.1s var(--ease-io)}
+.fig.yack .hd{animation:fig-yack-hd 1.1s var(--ease-io)}
+.fig.cheer .al{animation:fig-up-l .5s var(--ease-out) forwards}.fig.cheer .ar{animation:fig-up-r .5s var(--ease-out) forwards}
+.fig.cheer .figsvg{animation:fig-hop .45s ease-in-out .5s 4 alternate}
+@keyframes fig-throw{0%{transform:none}35%{transform:rotate(-160deg)}70%{transform:rotate(-40deg)}100%{transform:none}}
+@keyframes fig-throw-l{0%{transform:none}35%{transform:rotate(160deg)}70%{transform:rotate(40deg)}100%{transform:none}}
+@keyframes fig-sad{0%,100%{transform:none}30%,70%{transform:scaleY(.94) rotate(-3deg)}}
+@keyframes fig-yack{0%,100%{transform:none}25%,75%{transform:rotate(14deg) scaleY(.9)}}
+@keyframes fig-yack-hd{0%,100%{transform:none}25%,75%{transform:rotate(22deg)}}
+@keyframes fig-up-l{to{transform:rotate(150deg)}}
+@keyframes fig-up-r{to{transform:rotate(-150deg)}}
+@keyframes fig-hop{to{transform:translateY(-8%)}}
+@media (prefers-reduced-motion:reduce){.fig *{animation:none!important}.fig.cheer .al{transform:rotate(150deg)}.fig.cheer .ar{transform:rotate(-150deg)}}
