@@ -65,6 +65,7 @@ function route(opts = {}) {
   const idx = viewIndex(r.view, r.arg);
   const prev = cur;
   cur = { key, view: r.view, el, cleanup: made.cleanup || null, idx, onData: made.onData || null, loading: !!made.loading };
+  if (R.analytics) R.analytics.page(r.view, r.arg != null);
   updateChrome(r, made);
 
   let dir = sgn(idx - oldIdx) || 1;

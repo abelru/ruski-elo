@@ -171,7 +171,7 @@ R.views.submit = function () {
       st.games.push(game);
     });
     const timer = setTimeout(() => { if (!settled) { toast('Still saving. It will finish when you are back online.'); done(); } }, 8000);
-    p.then(() => { clearTimeout(timer); done(); }).catch(e => {
+    p.then(() => { clearTimeout(timer); if (R.analytics) R.analytics.event('game-submitted', 'Game submitted'); done(); }).catch(e => {
       clearTimeout(timer);
       console.error('Saving the game failed', e);
       if (settled) { toast('The game could not be saved: ' + (e && e.message ? e.message : 'unknown error')); return; }

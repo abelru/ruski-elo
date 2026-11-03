@@ -72,6 +72,7 @@
     shots = Math.floor(shots); hits = Math.floor(hits);
     if (!(shots > 0 && shots <= 500 && hits >= 0 && hits <= shots)) return Promise.resolve();
     if (mode !== 'live' || !database) { console.info('[ruski:' + mode + '] mini game stats not sent (' + hits + '/' + shots + ')'); return Promise.resolve(); }
+    if (R.analytics) R.analytics.event('minigame-played', 'Mini game played');
     return database.ref(MG_PATH).transaction(cur => ({
       shots: ((cur && cur.shots) | 0) + shots, hits: ((cur && cur.hits) | 0) + hits, updated: new Date().toISOString()
     })).catch(err => console.warn('mini game stats not saved', err));

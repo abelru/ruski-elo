@@ -50,6 +50,7 @@ tools/elo-diff.mjs  old-vs-new ELO regression against the live data
 - **Firebase Realtime Database**: games, roster, counter and tournament flag in one object, synced live to every visitor. Only `js/data.js` talks to it.
 - **EmailJS**: loaded and initialised; nothing sends mail yet
 - **three.js r128**: lazy-loaded for the Home hero only
+- **GoatCounter**: cookie-free page views + `game-submitted` / `minigame-played` events (`js/analytics.js`); off in `?mock=1` / `?readonly=1` and on localhost
 - **GitHub Pages**: static hosting, deployed straight from `main` (see `CNAME` for the custom domain)
 
 ## 🚀 Running it locally
