@@ -1,7 +1,7 @@
 /* Rankings: CSS-3D podium for the top three, then the full ELO ledger (built from the roster, like the old app). */
 (function (R) {
   'use strict';
-  const { $, esc, mk, reduceMotion } = R.util;
+  const { $, esc, mk, reduceMotion, plural } = R.util;
   const { ranked, pageHead, emptyCard } = R.shared;
 
   function towerHtml(p, rank, val) {
@@ -44,7 +44,7 @@
       `<div><div class="rk-head" aria-hidden="true"><span class="rankno"></span><span class="grow">Player</span><span class="rk-cols">Record</span><span class="rk-cols">Win %</span><span class="rk-cols">Games</span><span class="elo">${B.col}</span></div>
       <div class="ledger">${list.map((p, i) => `<a class="lrow" href="#players/${encodeURIComponent(p.name)}" data-push>
         <span class="rankno${i === 0 ? ' r1' : ''}">${i + 1}</span>
-        <span class="grow"><span class="t-card" style="display:block">${esc(p.name)}</span><span class="t-meta rk-meta">${p.games} games · ${p.wins}-${p.losses} · ${p.winRate}% wins</span></span>
+        <span class="grow"><span class="t-card" style="display:block">${esc(p.name)}</span><span class="t-meta rk-meta">${plural(p.games, 'game')} · ${p.wins}-${p.losses} · ${p.winRate}% wins</span></span>
         <span class="rk-cols num">${p.wins}-${p.losses}</span><span class="rk-cols num">${p.winRate}%</span><span class="rk-cols num">${p.games}</span>
         <span class="elo">${B.val(p)}</span></a>`).join('')}</div></div></div>`;
     el.addEventListener('click', e => {

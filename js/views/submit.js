@@ -3,7 +3,7 @@
      winningTeam, hadOvertime, redemptionShooter }.  The id comes from gameIdCounter (id = counter, then counter + 1). */
 (function (R) {
   'use strict';
-  const { $, $$, esc, mk, toast, store, unstore, signed, fmtDate } = R.util;
+  const { $, $$, esc, mk, toast, store, unstore, signed, fmtDate, plural } = R.util;
   const ST = R.stats;
   const { openSheet, closeSheet } = R.ui;
   const { pageHead, ranked, teamName } = R.shared;
@@ -72,7 +72,7 @@ R.views.submit = function () {
 
   function slotBtn(t, i) {
     const n = d.teams[t][i];
-    return `<button class="slot${n ? ' filled' : ''}" data-slot="${t},${i}" data-k="s${t}${i}" aria-label="Team ${t + 1}, player ${i + 1}: ${n ? esc(n) : 'empty'}"><span>${n ? esc(n) : 'Pick player'}</span><span class="m">${n ? playedCount(n) + ' games' : ''}</span></button>`;
+    return `<button class="slot${n ? ' filled' : ''}" data-slot="${t},${i}" data-k="s${t}${i}" aria-label="Team ${t + 1}, player ${i + 1}: ${n ? esc(n) : 'empty'}"><span>${n ? esc(n) : 'Pick player'}</span><span class="m">${n ? plural(playedCount(n), 'game') : ''}</span></button>`;
   }
   function step1() {
     const ready = d.teams.every(t => t.every(Boolean));
@@ -120,7 +120,7 @@ R.views.submit = function () {
     const fill = () => {
       const q = $('#pq', s).value.trim().toLowerCase();
       const items = list.filter(n => !q || n.toLowerCase().includes(q));
-      $('#pl', s).innerHTML = items.map(n => `<li><button data-n="${esc(n)}" ${taken.has(n) ? 'disabled' : ''}><span>${esc(n)}</span><span class="t-meta">${taken.has(n) ? 'already picked' : playedCount(n) + ' games'}</span></button></li>`).join('') || '<li class="empty">No match</li>';
+      $('#pl', s).innerHTML = items.map(n => `<li><button data-n="${esc(n)}" ${taken.has(n) ? 'disabled' : ''}><span>${esc(n)}</span><span class="t-meta">${taken.has(n) ? 'already picked' : plural(playedCount(n), 'game')}</span></button></li>`).join('') || '<li class="empty">No match</li>';
       const exact = list.some(n => n.toLowerCase() === q);
       $('#padd', s).innerHTML = q && !exact ? `<button class="btn block" style="margin-top:12px" data-add="${esc($('#pq', s).value.trim())}">Add “${esc($('#pq', s).value.trim())}” as a new player</button>` : '';
     };

@@ -4,7 +4,7 @@
    Reconstruction itself is in js/replay.js. */
 (function (R) {
   'use strict';
-  const { $, $$, esc, mk, reduceMotion, signed, hash01, store, toast } = R.util;
+  const { $, $$, esc, mk, reduceMotion, signed, hash01, store, toast, plural } = R.util;
   const { flag } = R.ui;
   const { teamName, teamNameFull, longDate } = R.shared;
   const { getReplay } = R.replay;
@@ -120,7 +120,7 @@ R.views.game = function (r) {
     const side = i % 2 === 0 ? -1 : 1, row = Math.floor(i / 2);
     pos.style.setProperty('--x', side * 0.6);
     pos.style.setProperty('--y', t === 0 ? TABLE_H / 2 - 0.2 - row * 0.26 : -TABLE_H / 2 + 0.1 + row * 0.26);
-    pos.innerHTML = `<div class="fig t${t + 1}${side < 0 ? ' lft' : ''}"><div class="bb">${figSvg(p.name)}</div></div>`;
+    pos.innerHTML = `<div class="pfig t${t + 1}${side < 0 ? ' lft' : ''}"><div class="bb">${figSvg(p.name)}</div></div>`;
     figL.appendChild(pos); figs[t][i] = pos.firstChild;
   }));
   function figAct(fig, cls, ms) {
@@ -128,7 +128,7 @@ R.views.game = function (r) {
     fig.classList.remove(cls); void fig.offsetWidth; fig.classList.add(cls);
     setTimeout(() => fig.classList.remove(cls), ms / S.speed);
   }
-  function fitScene() { tw = Math.round(Math.max(210, Math.min(scene.clientWidth * 0.66, 360)));   /* leaves room beside the table for the players */ scene.style.setProperty('--tw', tw + 'px'); }
+  function fitScene() { tw = Math.round(Math.max(190, Math.min(scene.clientWidth * 0.6, 360)));   /* leaves room beside the table for the players */ scene.style.setProperty('--tw', tw + 'px'); }
   function mount(sn, animate) {
     layer.innerHTML = ''; ballsL.innerHTML = ''; for (const k in map) delete map[k];
     sn.racks.forEach((rk, t) => rk.cups.forEach(c => {
@@ -225,7 +225,7 @@ R.views.game = function (r) {
     $('#cap', el).textContent = sn.caption;
     const sc = $('#scrub', el); sc.value = i; sc.setAttribute('aria-valuetext', `Shot ${shotNo[i]} of ${totalShots}`);
     Object.keys(legendEls).forEach(n => {
-      const h = sn.hits[n], b = legendEls[n], parts = [h.reg + ' cups'];
+      const h = sn.hits[n], b = legendEls[n], parts = [plural(h.reg, 'cup')];
       if (h.red) parts.push(h.red + ' red'); if (h.ot) parts.push(h.ot + ' OT'); if (h.tq) parts.push(h.tq + ' tri/quad'); if (h.yacks) parts.push(h.yacks + ' yack' + (h.yacks > 1 ? 's' : ''));
       $('[data-c]', b).textContent = parts.join(' · ');
       const shooting = animate && ev.type === 'shot' && ev.name === n;

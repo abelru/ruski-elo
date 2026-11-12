@@ -8,6 +8,7 @@
   const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const lowEnd = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) || (navigator.deviceMemory && navigator.deviceMemory < 4) || /[?&]noblur/.test(location.search);
   const sgn = n => n < 0 ? -1 : n > 0 ? 1 : 0;
+  const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');   // 1 game, 2 games
   const signed = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(Math.round(n));
   const isoDay = ts => new Date(ts).toISOString().slice(0, 10);
   const hash01 = n => { const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
@@ -28,5 +29,5 @@
   }
   function unstore(key) { try { localStorage.removeItem(key); } catch (e) { /* ignore */ } }
 
-  R.util = { $, $$, esc, reduceMotion, lowEnd, sgn, signed, isoDay, hash01, mk, fmtDate, toast, store, unstore };
+  R.util = { $, $$, esc, reduceMotion, lowEnd, sgn, plural, signed, isoDay, hash01, mk, fmtDate, toast, store, unstore };
 })(window.Ruski);
