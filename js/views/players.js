@@ -1,7 +1,7 @@
 /* Players: the roster list with search, and the profile page (#players/<name>). */
 (function (R) {
   'use strict';
-  const { $, $$, esc, mk } = R.util;
+  const { $, $$, esc, mk, plural } = R.util;
   const { glyphSvg } = R.ui;
   const { ranked, gameRow, pageHead } = R.shared;
   const ST = R.stats, E = R.elo, S = R.state;
@@ -14,7 +14,7 @@
     el.innerHTML = pageHead('Players', list.length + ' on the roster') +
       `<label class="field"><span class="sr">Find a player</span><input class="input" type="search" id="q" placeholder="Find a player" autocomplete="off"></label>
       <div class="ledger players-list" id="plist" style="margin-top:8px">${list.map((p, i) => `<a class="lrow" data-n="${esc(p.name.toLowerCase())}" href="${link(p.name)}" data-push>
-        <span class="rankno${i === 0 ? ' r1' : ''}">${i + 1}</span><span class="grow"><span class="t-card" style="display:block">${esc(p.name)}</span><span class="t-meta">${p.games} games \u00b7 ${p.wins}W-${p.losses}L \u00b7 ${p.cups} cups \u00b7 ${p.winRate}% wins</span></span><span class="elo">${p.elo}</span></a>`).join('')}</div>
+        <span class="rankno${i === 0 ? ' r1' : ''}">${i + 1}</span><span class="grow"><span class="t-card" style="display:block">${esc(p.name)}</span><span class="t-meta">${plural(p.games, 'game')} \u00b7 ${p.wins}W-${p.losses}L \u00b7 ${plural(p.cups, 'cup')} \u00b7 ${p.winRate}% wins</span></span><span class="elo">${p.elo}</span></a>`).join('')}</div>
       <p class="empty" id="none" ${list.length ? 'hidden' : ''}>${list.length ? 'No player by that name.' : 'No players yet.'}</p>`;
     el.addEventListener('input', e => {
       if (e.target.id !== 'q') return; const q = e.target.value.trim().toLowerCase(); let n = 0;
